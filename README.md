@@ -54,10 +54,10 @@ cmake --build build-web
 
 The first build downloads and compiles Emscripten ports (SDL2, SDL2_image, libjpeg, libpng, zlib). This can be slow the first time; subsequent builds should be fast.
 
-Deployable output lands in `build-web/dist/`. Serve it with any static file host, or locally:
+Deployable output lands in `game/`. Serve it with any static file host, or locally:
 
 ```sh
-cd build-web/dist
+cd game
 python3 -m http.server 8000
 ```
 

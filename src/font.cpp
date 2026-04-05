@@ -8,7 +8,7 @@
 #include "SDLU.h"
 
 
-constexpr int kNumFonts = (picDashedLineFont - picFont + 1);
+constexpr int kNumFonts = (picLastFont - picFont);
 
 static SkittlesFont s_font[kNumFonts] = {};
 
@@ -93,9 +93,8 @@ void InitFont( void )
 	LoadFont( &s_font[4],  picZapFont, (unsigned char*) "0123456789*PS" );
 	LoadFont( &s_font[5],  picZapOutlineFont, (unsigned char*) "0123456789*" );
 	LoadFont( &s_font[6],  picVictoryFont, (unsigned char*) "AB" );
-	LoadFont( &s_font[7],  picBubbleFont, (unsigned char*) "*" );
+	LoadFont( &s_font[7],  picDashedLineFont, (unsigned char*) "." );
 	LoadFont( &s_font[8],  picSkiaBoldFont, (unsigned char*) "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*().,/-=_+<>?|'\":; \x01\x02\0x03" );
-	LoadFont( &s_font[9],  picDashedLineFont, (unsigned char*) "." );
 }
 
 
