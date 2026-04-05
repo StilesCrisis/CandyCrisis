@@ -6,6 +6,12 @@ cmake_minimum_required(VERSION 3.21)
 
 file(MAKE_DIRECTORY "${DST_DIR}")
 
+# Remove hidden files (e.g. .DS_Store) that may have been copied in previous builds.
+file(GLOB_RECURSE stale_hidden "${DST_DIR}/*/.DS_Store" "${DST_DIR}/.DS_Store")
+foreach(f IN LISTS stale_hidden)
+    file(REMOVE "${f}")
+endforeach()
+
 # --- Individual resource files (PICT images, sounds, music modules, level data) ---
 file(GLOB RESOURCE_FILES
     "${SRC_DIR}/PICT_*.png"

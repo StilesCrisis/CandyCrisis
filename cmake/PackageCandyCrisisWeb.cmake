@@ -49,8 +49,8 @@ list(LENGTH OTHER_ITEMS OTHER_COUNT)
 message(STATUS "Packaging shared resources (${OTHER_COUNT} items) -> pkg_shared...")
 execute_process(
     COMMAND "${PYTHON}" "${FILE_PACKAGER}"
-        "${OUTPUT_DIR}/pkg_shared.data"
-        "--js-output=${OUTPUT_DIR}/pkg_shared.js"
+        "pkg_shared.data"
+        "--js-output=pkg_shared.js"
         "--quiet"
         ${OTHER_ARGS}
     WORKING_DIRECTORY "${OUTPUT_DIR}"

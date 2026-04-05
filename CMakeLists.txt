@@ -187,8 +187,8 @@ foreach(dir ${CHAR_DIRS_SRC})
             "${CMAKE_CURRENT_BINARY_DIR}/pkg_level_${char_idx}.data"
             "${CMAKE_CURRENT_BINARY_DIR}/pkg_level_${char_idx}.js"
         COMMAND "${PYTHON}" "${FILE_PACKAGER}"
-            "${CMAKE_CURRENT_BINARY_DIR}/pkg_level_${char_idx}.data"
-            "--js-output=${CMAKE_CURRENT_BINARY_DIR}/pkg_level_${char_idx}.js"
+            "pkg_level_${char_idx}.data"
+            "--js-output=pkg_level_${char_idx}.js"
             "--quiet"
             "--preload" "CandyCrisisResources/${name}@CandyCrisisResources/${name}"
             ${extra_exclude}
@@ -278,8 +278,8 @@ foreach(w 1 2 3)
             "${CMAKE_CURRENT_BINARY_DIR}/pkg_world${w}.data"
             "${CMAKE_CURRENT_BINARY_DIR}/pkg_world${w}.js"
         COMMAND "${PYTHON}" "${FILE_PACKAGER}"
-            "${CMAKE_CURRENT_BINARY_DIR}/pkg_world${w}.data"
-            "--js-output=${CMAKE_CURRENT_BINARY_DIR}/pkg_world${w}.js"
+            "pkg_world${w}.data"
+            "--js-output=pkg_world${w}.js"
             "--quiet"
             ${world_preloads}
         DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/CandyCrisis.html"
@@ -297,7 +297,7 @@ add_custom_target(WebPackages ALL DEPENDS ${PKG_OUTPUTS})
 add_dependencies(WebPackages CandyCrisis)
 
 # Collect all deployable files into a clean dist/ folder.
-set(DIST_DIR "${CMAKE_CURRENT_BINARY_DIR}/dist" CACHE PATH "Deployable output directory")
+set(DIST_DIR "${CMAKE_SOURCE_DIR}/game")
 add_custom_target(WebDist ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory "${DIST_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -313,7 +313,7 @@ add_custom_target(WebDist ALL
         "${CMAKE_SOURCE_DIR}/web/index.html"
         "${DIST_DIR}/index.html"
     DEPENDS ${PKG_OUTPUTS}
-    COMMENT "Collecting deployable files into dist/"
+    COMMENT "Collecting deployable files into game/"
     VERBATIM
 )
 add_dependencies(WebDist WebPackages CandyCrisis)
