@@ -125,7 +125,7 @@ void CheckKeys()
         }
         else
         {
-            if (ty > 12) tempHitKey[i].drop = 1;
+            if (ty > 24) tempHitKey[i].drop = 1;
         }
     }
 
