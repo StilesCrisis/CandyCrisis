@@ -18,7 +18,7 @@
         // web worker
         PACKAGE_PATH = encodeURIComponent(location.pathname.substring(0, location.pathname.lastIndexOf('/')) + '/');
       }
-      var PACKAGE_NAME = '/Users/johnstiles/CandyCrisis/build-web/pkg_level_11.data';
+      var PACKAGE_NAME = 'pkg_level_11.data';
       var REMOTE_PACKAGE_BASE = 'pkg_level_11.data';
       var REMOTE_PACKAGE_NAME = Module['locateFile'] ? Module['locateFile'](REMOTE_PACKAGE_BASE, '') : REMOTE_PACKAGE_BASE;
       var REMOTE_PACKAGE_SIZE = metadata['remote_package_size'];
@@ -108,9 +108,9 @@ Module['FS_createPath']("/CandyCrisisResources", "PICT_5011", true, true);
         Module['FS_createDataFile'](name, null, data, true, true, true);
         Module['removeRunDependency'](`fp ${name}`);
           }
-          Module['removeRunDependency']('datafile_/Users/johnstiles/CandyCrisis/build-web/pkg_level_11.data');
+          Module['removeRunDependency']('datafile_pkg_level_11.data');
       }
-      Module['addRunDependency']('datafile_/Users/johnstiles/CandyCrisis/build-web/pkg_level_11.data');
+      Module['addRunDependency']('datafile_pkg_level_11.data');
 
       if (!Module['preloadResults']) Module['preloadResults'] = {};
 
