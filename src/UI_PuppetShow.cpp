@@ -718,6 +718,7 @@ static void TransitionToGameplay(TransitionAfterUIScreen behavior, SDL_Texture* 
 
 void UI_ShowPuppetShowForLevel(int level, TransitionAfterUIScreen behavior)
 {
+    SDLU_ResetEscapeState();
     Platform_SetPauseButtonVisible(false);
 
     // Validate and look up script.

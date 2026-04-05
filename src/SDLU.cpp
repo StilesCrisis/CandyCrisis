@@ -389,8 +389,7 @@ void SDLU_WaitForRelease( void )
         SDLU_Yield();
     }
     while( SDLU_AnyKeyIsPressed( ) || SDLU_Button() );
-    s_escapeTap = false;
-    Platform_ResetTapDetection();
+    SDLU_ResetEscapeState();
 }
 
 
@@ -418,6 +417,12 @@ MBoolean SDLU_DeleteKeyIsPressed( void )
 void SDLU_SetEscapeTap()
 {
     s_escapeTap = true;
+}
+
+void SDLU_ResetEscapeState()
+{
+    s_escapeTap = false;
+    Platform_ResetTapDetection();
 }
 
 void SDLU_SetMouseFromCanvas(int canvasX, int canvasY)

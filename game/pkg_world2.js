@@ -18,7 +18,7 @@
         // web worker
         PACKAGE_PATH = encodeURIComponent(location.pathname.substring(0, location.pathname.lastIndexOf('/')) + '/');
       }
-      var PACKAGE_NAME = '/Users/johnstiles/Candy Crisis/build-web/pkg_world2.data';
+      var PACKAGE_NAME = '/Users/johnstiles/CandyCrisis/build-web/pkg_world2.data';
       var REMOTE_PACKAGE_BASE = 'pkg_world2.data';
       var REMOTE_PACKAGE_NAME = Module['locateFile'] ? Module['locateFile'](REMOTE_PACKAGE_BASE, '') : REMOTE_PACKAGE_BASE;
       var REMOTE_PACKAGE_SIZE = metadata['remote_package_size'];
@@ -107,9 +107,9 @@ Module['FS_createPath']("/", "CandyCrisisResources", true, true);
         Module['FS_createDataFile'](name, null, data, true, true, true);
         Module['removeRunDependency'](`fp ${name}`);
           }
-          Module['removeRunDependency']('datafile_/Users/johnstiles/Candy Crisis/build-web/pkg_world2.data');
+          Module['removeRunDependency']('datafile_/Users/johnstiles/CandyCrisis/build-web/pkg_world2.data');
       }
-      Module['addRunDependency']('datafile_/Users/johnstiles/Candy Crisis/build-web/pkg_world2.data');
+      Module['addRunDependency']('datafile_/Users/johnstiles/CandyCrisis/build-web/pkg_world2.data');
 
       if (!Module['preloadResults']) Module['preloadResults'] = {};
 

@@ -89,6 +89,7 @@ struct FallingBlob
 
 void UI_ShowWorld1VictoryScreen(TransitionAfterUIScreen behavior)
 {
+    SDLU_ResetEscapeState();
     SDLU_LoadWorldPackage(1);
 
     static const int kNumLayers = 10;
@@ -356,6 +357,7 @@ static const int kNumW3Layers = (int)std::size(kWorld3Layers);
 
 void UI_ShowWorld2VictoryScreen(TransitionAfterUIScreen behavior)
 {
+    SDLU_ResetEscapeState();
     SDLU_LoadWorldPackage(2);
 
     CC_RGBSurface* layers[kNumW2Layers] = {};
@@ -492,6 +494,7 @@ struct MarshmallowInstance
 
 void UI_ShowWorld3VictoryScreen(TransitionAfterUIScreen behavior)
 {
+    SDLU_ResetEscapeState();
     SDLU_LoadWorldPackage(3);
 
     CC_RGBSurface* layers[kNumW3Layers] = {};

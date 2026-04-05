@@ -135,9 +135,6 @@ add_custom_command(TARGET CandyCrisis POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_SOURCE_DIR}/web/favicon.png"
         "${CMAKE_CURRENT_BINARY_DIR}/favicon.png"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/web/polka-dot.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/polka-dot.png"
     COMMENT "Copying web assets"
 )
 
@@ -310,7 +307,6 @@ add_custom_target(WebDist ALL
         "${CMAKE_CURRENT_BINARY_DIR}/audio.js"
         "${CMAKE_CURRENT_BINARY_DIR}/manifest.json"
         "${CMAKE_CURRENT_BINARY_DIR}/favicon.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/polka-dot.png"
         ${PKG_OUTPUTS}
         "${DIST_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
