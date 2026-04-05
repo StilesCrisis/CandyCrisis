@@ -5,5 +5,8 @@
   "orientation": "landscape",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "start_url": "."
+  "start_url": ".",
+  "icons": [
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
 }
