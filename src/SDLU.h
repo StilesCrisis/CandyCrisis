@@ -28,6 +28,7 @@ MBoolean     SDLU_OptionKeyIsPressed();
 MBoolean     SDLU_DeleteKeyIsPressed();
 MBoolean     SDLU_EscapeKeyIsPressed();
 void         SDLU_SetEscapeTap();        // signal escape from touch (e.g. triple-tap)
+void         SDLU_ResetEscapeState();   // clear escape tap flag and triple-tap ring buffer
 void         SDLU_SetMouseFromCanvas(int canvasX, int canvasY);  // update cursor pos from 1920x1080 canvas coords
 void         SDLU_PrefetchLevelPackage(int levelID);  // fire-and-forget: start download, don't wait
 void         SDLU_LoadLevelPackage(int levelID);      // start if needed, then wait until ready
