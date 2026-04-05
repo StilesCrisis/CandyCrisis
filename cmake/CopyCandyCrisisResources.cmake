@@ -1,0 +1,142 @@
+# CopyCandyCrisisResources.cmake
+# Invoked at post-build time by CMakeLists.txt via:
+#   cmake -D SRC_DIR=<source dir> -D DST_DIR=<output/CandyCrisisResources> -P this_script.cmake
+
+cmake_minimum_required(VERSION 3.21)
+
+file(MAKE_DIRECTORY "${DST_DIR}")
+
+# --- Individual resource files (PICT images, sounds, music modules, level data) ---
+file(GLOB RESOURCE_FILES
+    "${SRC_DIR}/PICT_*.png"
+    "${SRC_DIR}/PICT_*.jpg"
+    "${SRC_DIR}/snd_*.wav"
+    "${SRC_DIR}/mod_*"
+    "${SRC_DIR}/CandyCrisisLevels.txt"
+)
+
+foreach(f IN LISTS RESOURCE_FILES)
+    if(NOT IS_DIRECTORY "${f}")
+        cmake_path(GET f FILENAME fname)
+        file(COPY_FILE "${f}" "${DST_DIR}/${fname}" ONLY_IF_DIFFERENT)
+    endif()
+endforeach()
+
+# --- Directory-based PICT resources (e.g. PICT_5000/, PICT_5001/) ---
+file(GLOB PICT_ENTRIES "${SRC_DIR}/PICT_*")
+foreach(d IN LISTS PICT_ENTRIES)
+    if(IS_DIRECTORY "${d}")
+        cmake_path(GET d FILENAME dname)
+        file(MAKE_DIRECTORY "${DST_DIR}/${dname}")
+        file(GLOB_RECURSE dir_files "${d}/*")
+        foreach(f IN LISTS dir_files)
+            cmake_path(RELATIVE_PATH f BASE_DIRECTORY "${SRC_DIR}" OUTPUT_VARIABLE rel)
+            cmake_path(GET f PARENT_PATH fparent)
+            cmake_path(RELATIVE_PATH fparent BASE_DIRECTORY "${SRC_DIR}" OUTPUT_VARIABLE relparent)
+            file(MAKE_DIRECTORY "${DST_DIR}/${relparent}")
+            file(COPY_FILE "${f}" "${DST_DIR}/${rel}" ONLY_IF_DIFFERENT)
+        endforeach()
+    endif()
+endforeach()
+
+# --- World Select screen assets (renamed copies from the iOS sibling project) ---
+if(IOS_ASSETS)
+    macro(copy_world_asset src dst)
+        if(EXISTS "${IOS_ASSETS}/${src}")
+            file(COPY_FILE "${IOS_ASSETS}/${src}" "${DST_DIR}/${dst}" ONLY_IF_DIFFERENT)
+        endif()
+    endmacro()
+    copy_world_asset("Candy Crisis Logo.png" "PICT_401.png")
+    copy_world_asset("Text Balloon.png"      "PICT_402.png")
+    copy_world_asset("Pause Overlay.png"     "PICT_403.png")
+    copy_world_asset("Pause Icon.png"        "PICT_404.png")
+    copy_world_asset("World Select.png"    "PICT_500.png")
+    copy_world_asset("Conga Line Blue.png" "PICT_501.png")
+    copy_world_asset("Conga Line Green.png"  "PICT_502.png")
+    copy_world_asset("Conga Line Red.png"    "PICT_503.png")
+    copy_world_asset("Conga Line Purple.png" "PICT_504.png")
+    copy_world_asset("Star-0.png"          "PICT_510.png")
+    copy_world_asset("Star-1.png"          "PICT_511.png")
+    copy_world_asset("Star-2.png"          "PICT_512.png")
+    copy_world_asset("Star-3.png"          "PICT_513.png")
+    copy_world_asset("Star-4.png"          "PICT_514.png")
+    copy_world_asset("Starburst.png"       "PICT_520.png")
+
+    # Blob rain assets for World 1 victory screen
+    copy_world_asset("Blob0.png"           "PICT_530.png")
+    copy_world_asset("Blob1.png"           "PICT_531.png")
+    copy_world_asset("Blob2.png"           "PICT_532.png")
+    copy_world_asset("Blob3.png"           "PICT_533.png")
+    copy_world_asset("Blob4.png"           "PICT_534.png")
+    copy_world_asset("Blob5.png"           "PICT_535.png")
+    copy_world_asset("Blob6.png"           "PICT_536.png")
+    copy_world_asset("Splat0.png"          "PICT_537.png")
+    copy_world_asset("Splat1.png"          "PICT_538.png")
+    copy_world_asset("Splat2.png"          "PICT_539.png")
+    copy_world_asset("Splat3.png"          "PICT_540.png")
+    copy_world_asset("Splat4.png"          "PICT_541.png")
+    copy_world_asset("Splat5.png"          "PICT_542.png")
+    copy_world_asset("Splat6.png"          "PICT_543.png")
+    copy_world_asset("Text Halo.png"       "PICT_544.png")
+endif()
+
+# --- World victory screen layer assets ---
+if(WORLD_ASSETS)
+    macro(copy_world_layer src_dir src dst)
+        if(EXISTS "${WORLD_ASSETS}/${src_dir}/${src}")
+            file(COPY_FILE "${WORLD_ASSETS}/${src_dir}/${src}" "${DST_DIR}/${dst}" ONLY_IF_DIFFERENT)
+        endif()
+    endmacro()
+
+    # World 1 layers (PICT_600-609)
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-1.jpg"  "PICT_600.jpg")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-2.png"  "PICT_601.png")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-3.png"  "PICT_602.png")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-4.png"  "PICT_603.png")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-5.png"  "PICT_604.png")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-6.png"  "PICT_605.png")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-7.png"  "PICT_606.png")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-8.png"  "PICT_607.png")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-9.png"  "PICT_608.png")
+    copy_world_layer("World 1 Clear Assets" "World-1-Layer-10.png" "PICT_609.png")
+
+    # World 2 layers (PICT_610-621)
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-1.jpg"   "PICT_610.jpg")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-2L.png"  "PICT_611.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-2R.png"  "PICT_612.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-3L.png"  "PICT_613.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-3R.png"  "PICT_614.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-4.png"   "PICT_615.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-5.png"   "PICT_616.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-6.png"   "PICT_617.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-7.png"   "PICT_618.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-8.png"   "PICT_619.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-9.png"   "PICT_620.png")
+    copy_world_layer("World 2 Clear Assets" "World-2-Layer-10.png"  "PICT_621.png")
+
+    # World 3 layers (PICT_630-641); layers 6-10 are shared World 2 PICTs (617-621)
+    copy_world_layer("World 3 Clear Assets" "World-3-Layer-1.jpg"      "PICT_630.jpg")
+    copy_world_layer("World 3 Clear Assets" "World-3-Layer-2L.png"     "PICT_631.png")
+    copy_world_layer("World 3 Clear Assets" "World-3-Layer-2R.png"     "PICT_632.png")
+    copy_world_layer("World 3 Clear Assets" "World-3-Layer-3L.png"     "PICT_633.png")
+    copy_world_layer("World 3 Clear Assets" "World-3-Layer-3R.png"     "PICT_634.png")
+    copy_world_layer("World 3 Clear Assets" "World-3-Layer-4.png"      "PICT_635.png")
+    copy_world_layer("World 3 Clear Assets" "World-3-Layer-5.png"      "PICT_636.png")
+    copy_world_layer("World 3 Clear Assets" "World-2-Composite.png"    "PICT_637.png")
+    copy_world_layer("World 3 Clear Assets" "MarshmallowsFarther.png"  "PICT_638.png")
+    copy_world_layer("World 3 Clear Assets" "MarshmallowsFarLight.png" "PICT_639.png")
+    copy_world_layer("World 3 Clear Assets" "MarshmallowsFar.png"      "PICT_640.png")
+    copy_world_layer("World 3 Clear Assets" "MarshmallowsNear.png"     "PICT_641.png")
+
+    # Credits screen layers (PICT_642-646)
+    copy_world_layer("Credits Assets" "Campfire-Layer-1.png"        "PICT_642.png")
+    copy_world_layer("Credits Assets" "Campfire-Layer-2.png"        "PICT_643.png")
+    copy_world_layer("Credits Assets" "Campfire-Layer-3.png"        "PICT_644.png")
+    copy_world_layer("Credits Assets" "Campfire-Layer-4.png"        "PICT_645.png")
+    copy_world_layer("Credits Assets" "Campfire-Layer-5.png"        "PICT_646.png")
+
+    # PostCredits screen layers (PICT_647-649)
+    copy_world_layer("Credits Assets" "Marshmallow-Roast-Layer-1.png" "PICT_647.png")
+    copy_world_layer("Credits Assets" "Marshmallow-Roast-Layer-2.png" "PICT_648.png")
+    copy_world_layer("Credits Assets" "Marshmallow-Roast-Layer-3.png" "PICT_649.png")
+endif()

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Candy Crisis</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: black url('polka-dot.png') repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        touch-action: none;
+      }
+      #canvas {
+        display: block;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 style="touch-action:none;"></canvas>
+    <button id="fsBtn" title="Fullscreen" style="
+      display: none;
+      position: fixed; top: 10px; right: 10px; z-index: 9999;
+      background: rgba(0,0,0,0.45); color: white;
+      border: 1px solid rgba(255,255,255,0.4); border-radius: 6px;
+      padding: 6px 9px; font-size: 18px; line-height: 1;
+      cursor: pointer; touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    ">⛶</button>
+    <script type='text/javascript'>
+      (function() {
+        var isMobile = window.matchMedia('(pointer: coarse)').matches;
+
+        // Tracks g_iPadScreenLeftEdge from C++: 0 = tutorial (left-align canvas),
+        // non-zero = normal gameplay (center canvas).
+        var g_screenLeftEdge = 204;
+
+        function sizeCanvas() {
+          var c = document.getElementById('canvas');
+          var vp = window.visualViewport;
+          var vw = vp ? vp.width  : window.innerWidth;
+          var vh = vp ? vp.height : window.innerHeight;
+          var w, h;
+          if (isMobile && vw >= vh) {
+            // Landscape mobile: always fill height exactly — top/bottom never cut off.
+            // Width may overflow; body overflow:hidden crops the sides.
+            h = vh;
+            w = Math.round(vh * 16 / 9);
+          } else {
+            // Portrait or desktop: contain within viewport (no cropping at all).
+            if (vw / vh >= 16 / 9) {
+              h = vh; w = Math.round(vh * 16 / 9);  // height-constrained
+            } else {
+              w = vw; h = Math.round(vw * 9 / 16);  // width-constrained
+            }
+          }
+          // Always set explicit dimensions so Emscripten's canvas sizing can't win.
+          c.style.width = w + 'px';
+          c.style.height = h + 'px';
+          // When the canvas overflows the viewport width (narrow screen in landscape),
+          // left-align during the tutorial so the chalkboard isn't cropped.
+          // For all other modes, center as usual.
+          document.body.style.justifyContent = (w > vw && g_screenLeftEdge === 0) ? 'flex-start' : '';
+
+        }
+
+        sizeCanvas();
+        window.addEventListener('resize', sizeCanvas);
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', sizeCanvas);
+
+        // Called from C++ (Input_Emscripten.cpp) when g_iPadScreenLeftEdge changes.
+        window.candyCrisis_setScreenLeftEdge = function(leftEdge) {
+          g_screenLeftEdge = leftEdge;
+          sizeCanvas();
+        };
+
+        if (isMobile) {
+          var isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          var isStandalone = window.navigator.standalone; // true when launched from home screen
+
+          if (isIOS && !isStandalone) {
+            // iOS Safari: Fullscreen API doesn't exist. The only way to hide the
+            // address bar is Add to Home Screen. Show a dismissible hint banner.
+            var banner = document.createElement('div');
+            banner.innerHTML =
+              'For fullscreen: tap <b><svg width="13" height="16" viewBox="0 0 50 62" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="25" y1="38" x2="25" y2="4"/><polyline points="13,16 25,2 37,16"/><polyline points="16,26 5,26 5,60 45,60 45,26 34,26"/></svg></b> then <b>Add to Home Screen</b>' +
+              '<span id="fsDismiss" style="float:right;padding:0 6px;cursor:pointer;">&#x2715;</span>';
+            banner.style.cssText =
+              'position:fixed;bottom:0;left:0;right:0;z-index:9999;' +
+              'background:rgba(0,0,0,0.7);color:#fff;font-size:13px;' +
+              'padding:10px 14px;text-align:center;touch-action:manipulation;';
+            document.body.appendChild(banner);
+            document.getElementById('fsDismiss').addEventListener('touchend', function(e) {
+              e.preventDefault();
+              banner.remove();
+            });
+          } else if (!isIOS) {
+            // Android and others: Fullscreen API works fine.
+            var fsBtn = document.getElementById('fsBtn');
+            fsBtn.style.display = 'block';
+
+            function enterFullscreen() {
+              var el = document.documentElement;
+              if (el.requestFullscreen) el.requestFullscreen().catch(function(){});
+              else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+            }
+            fsBtn.addEventListener('touchend', function(e) {
+              e.preventDefault();
+              enterFullscreen();
+            });
+            fsBtn.addEventListener('click', enterFullscreen);
+
+            function onFsChange() {
+              var inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+              fsBtn.style.display = inFs ? 'none' : 'block';
+              if (inFs) sizeCanvas();
+            }
+            document.addEventListener('fullscreenchange', onFsChange);
+            document.addEventListener('webkitfullscreenchange', onFsChange);
+          }
+          // isIOS && isStandalone: already fullscreen, nothing to do.
+        }
+      })();
+
+      // Touch input using Pointer Events API, which SDL2's Emscripten backend does not
+      // intercept (SDL only registers touchstart/touchmove/touchend handlers). This avoids
+      // Android Chrome gesture cancellation that broke the Touch Events approach.
+      // Pointer Events are supported on Android Chrome and iOS Safari 13+.
+      //   Left half of screen  → player 0,  right half → player 1.
+      //   Pan (finger drags)   → translation → left / right / drop in C++.
+      //   Tap (< 500ms, < 9px) → Platform_SetTouchTap → rotate in C++.
+      (function() {
+        if (!window.matchMedia('(pointer: coarse)').matches) return;
+
+        // Per-pointer tracking: pointerId → { player, startX, startY, startTime }
+        var active = {};
+
+        function wasm(fn) { return typeof Module !== 'undefined' && Module[fn]; }
+
+        document.addEventListener('pointerdown', function(e) {
+          if (e.pointerType !== 'touch') return;
+          var fsBtn = document.getElementById('fsBtn');
+          if (e.target === fsBtn) return;
+          // NOTE: do NOT call e.preventDefault() here.
+          // (1) CSS touch-action:none on body+canvas is the correct way to suppress
+          //     scroll/zoom and to ensure pointermove fires on iOS Safari — calling
+          //     preventDefault() in the handler is the old approach and is redundant.
+          // (2) preventDefault() on pointerdown suppresses touchstart in Chrome, which
+          //     prevents SDL's Emscripten_HandleTouch from running.  SDL synthesizes
+          //     SDL_MOUSEMOTION + SDL_MOUSEBUTTONDOWN from touchstart; without it,
+          //     s_mousePosition is never updated and the cursor stays at its last
+          //     position — causing accidental button clicks on stale positions.
+          active[e.pointerId] = {
+            player:    e.clientX < window.innerWidth / 2 ? 0 : 1,
+            startX:    e.clientX,
+            startY:    e.clientY,
+            startTime: Date.now()
+          };
+        });
+
+        document.addEventListener('pointermove', function(e) {
+          if (e.pointerType !== 'touch') return;
+          var info = active[e.pointerId];
+          if (!info || !wasm('_Platform_SetTouchTranslation')) return;
+          Module._Platform_SetTouchTranslation(
+            info.player,
+            e.clientX - info.startX,
+            e.clientY - info.startY
+          );
+        });
+
+        function onPointerEnd(e) {
+          if (e.pointerType !== 'touch') return;
+          var info = active[e.pointerId];
+          if (!info) return;
+          delete active[e.pointerId];
+
+          var dx = e.clientX - info.startX;
+          var dy = e.clientY - info.startY;
+          var dt = Date.now() - info.startTime;
+
+          // Clear translation if no other active touch owns this player's side.
+          var stillPanning = false;
+          for (var id in active) {
+            if (active[id].player === info.player) { stillPanning = true; break; }
+          }
+          if (!stillPanning && wasm('_Platform_SetTouchTranslation'))
+            Module._Platform_SetTouchTranslation(info.player, 0, 0);
+
+          // Brief, stationary touch = tap. Convert to canvas space and let C++ route it
+          // (pause button hit-test vs. rotate).
+          // Mirrors UILongPressGestureRecognizer tap detection in CandyCrisisViewController.mm.
+          if (dt < 500 && Math.abs(dx) <= 9 && Math.abs(dy) <= 9) {
+            if (wasm('_Platform_SetTouchTap')) {
+              var c = document.getElementById('canvas');
+              var rect = c.getBoundingClientRect();
+              var tapCX = Math.round((e.clientX - rect.left) * (1920 / rect.width));
+              var tapCY = Math.round((e.clientY - rect.top)  * (1080 / rect.height));
+              Module._Platform_SetTouchTap(info.player, tapCX, tapCY);
+            }
+          }
+        }
+
+        document.addEventListener('pointerup',     onPointerEnd);
+        document.addEventListener('pointercancel', onPointerEnd);
+      })();
+
+      // Unlock AudioContext on touchend — iOS Safari requires touchend (not pointerdown /
+      // touchstart) as the trusted gesture for AudioContext.resume().  This fires after
+      // every tap so it also handles re-lock after the app is backgrounded.
+      document.addEventListener('touchend', function() {
+        if (window.CandyCrisisAudio) CandyCrisisAudio.resumeAudio();
+      }, { passive: true });
+
+      // Unlock AudioContext on first keyboard input (desktop / physical keyboard on mobile).
+      // The pointerdown handler above covers touch; this covers the keyboard path.
+      document.addEventListener('keydown', function onKeyUnlock() {
+        if (window.CandyCrisisAudio) CandyCrisisAudio.resumeAudio();
+        document.removeEventListener('keydown', onKeyUnlock);
+      });
+
+      var Module = {
+        print(...args) { console.log(...args); },
+        canvas: document.getElementById('canvas'),
+        setStatus(text) { if (text) console.log('[status] ' + text); },
+        totalDependencies: 0,
+        monitorRunDependencies(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+        }
+      };
+      window.onerror = (event) => { console.error('Exception: ' + event); };
+    </script>
+    <!-- Shared resource package (UI, backdrops, victory screens, audio).
+         Per-level packages (pkg_level_N.js) are loaded on demand by the game. -->
+    <script src="pkg_shared.js"></script>
+    <!-- Web Audio + libopenmpt glue.  Must load before the game WASM so that
+         CandyCrisisAudio is available when InitSound() calls into JS. -->
+    <script src="audio.js"></script>
+    {{{ SCRIPT }}}
+  </body>
+</html>

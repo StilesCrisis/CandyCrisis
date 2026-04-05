@@ -1,0 +1,13 @@
+Diagnostics:
+  # Suppress noisy clangd built-in checks
+  Suppress:
+    - unused-includes          # Too noisy with platform-conditional includes
+    - unknown_typename_suggest # False positive: MBoolean vs macOS Boolean from Cocoa.h
+    - undeclared_var_use       # Cascade from MBoolean misidentification
+    - undeclared_var_use_suggest
+    - expected_lparen_after_type
+    - unexpected_typedef
+    - fatal_too_many_errors
+  ClangTidy:
+    Remove:
+      - misc-unused-using-decls
