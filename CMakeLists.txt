@@ -90,6 +90,7 @@ add_custom_command(TARGET CandyCrisis PRE_LINK
         -D "DST_DIR=${WEB_RESOURCES_DIR}"
         -P "${CMAKE_SOURCE_DIR}/cmake/CopyCandyCrisisResources.cmake"
     COMMENT "Copying game resources for web preload"
+    VERBATIM
 )
 
 target_link_libraries(CandyCrisis PRIVATE "${LIBOPENMPT_LIB}")
@@ -139,6 +140,7 @@ add_custom_command(TARGET CandyCrisis POST_BUILD
         "${CMAKE_SOURCE_DIR}/web/apple-touch-icon.png"
         "${CMAKE_CURRENT_BINARY_DIR}/apple-touch-icon.png"
     COMMENT "Copying web assets"
+    VERBATIM
 )
 
 # ---------------------------------------------------------------------------
@@ -367,6 +369,7 @@ add_custom_command(TARGET CandyCrisis POST_BUILD
         "${FMOD_LIB}"
         $<TARGET_FILE_DIR:CandyCrisis>
     COMMENT "Copying libfmod.dylib to output directory"
+    VERBATIM
 )
 
 # Copy game resources next to the executable after each build.
@@ -376,6 +379,7 @@ add_custom_command(TARGET CandyCrisis POST_BUILD
         -D "DST_DIR=$<TARGET_FILE_DIR:CandyCrisis>/CandyCrisisResources"
         -P "${CMAKE_SOURCE_DIR}/cmake/CopyCandyCrisisResources.cmake"
     COMMENT "Copying game resources to output directory"
+    VERBATIM
 )
 
 else()
@@ -449,6 +453,7 @@ add_custom_command(TARGET CandyCrisis POST_BUILD
         "${FMOD_LIB_DIR}/fmod.dll"
         $<TARGET_FILE_DIR:CandyCrisis>
     COMMENT "Copying runtime DLLs to output directory"
+    VERBATIM
 )
 
 # Copy game resources next to the executable after each build.
@@ -458,6 +463,7 @@ add_custom_command(TARGET CandyCrisis POST_BUILD
         -D "DST_DIR=$<TARGET_FILE_DIR:CandyCrisis>/CandyCrisisResources"
         -P "${CMAKE_SOURCE_DIR}/cmake/CopyCandyCrisisResources.cmake"
     COMMENT "Copying game resources to output directory"
+    VERBATIM
 )
 
 endif()

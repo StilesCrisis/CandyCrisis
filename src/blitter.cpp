@@ -202,19 +202,24 @@ void SurfaceBlitWeightedCharacter( SkittlesFont* font, unsigned char text, float
 {
     if (alpha == 0) return;
 
-    int   width  = font->width[text];
-    int   height = font->h;
-    float sw     = width * scale;
-    float sh     = height * scale;
+    int   srcWidth = font->srcWidth[text];
+    int   advance  = font->width[text];
+    int   height   = font->h;
 
-    SDL_Rect  srcR = { font->across[text], 0, width, height };
-    SDL_FRect dstR = { *dx, (float)dy, sw, sh };
-    SDL_SetTextureColorMod(font->texture, (uint8_t)r, (uint8_t)g, (uint8_t)b);
-    SDL_SetTextureAlphaMod(font->texture, (uint8_t)(alpha > 255 ? 255 : alpha));
-    SDL_RenderCopyF(g_renderer, font->texture, &srcR, &dstR);
-    SDL_SetTextureColorMod(font->texture, 255, 255, 255);
-    SDL_SetTextureAlphaMod(font->texture, 255);
-    *dx += sw;
+    if (srcWidth > 0)
+    {
+        float sw = srcWidth * scale;
+        float sh = height * scale;
+
+        SDL_Rect  srcR = { font->across[text], 0, srcWidth, height };
+        SDL_FRect dstR = { *dx + font->bearingX[text] * scale, (float)dy, sw, sh };
+        SDL_SetTextureColorMod(font->texture, (uint8_t)r, (uint8_t)g, (uint8_t)b);
+        SDL_SetTextureAlphaMod(font->texture, (uint8_t)(alpha > 255 ? 255 : alpha));
+        SDL_RenderCopyF(g_renderer, font->texture, &srcR, &dstR);
+        SDL_SetTextureColorMod(font->texture, 255, 255, 255);
+        SDL_SetTextureAlphaMod(font->texture, 255);
+    }
+    *dx += advance * scale;
 }
 
 void BlitString(SkittlesFont* font, const char* text, float* x, int y, int r, int g, int b, int alpha, float scale)
@@ -225,46 +230,57 @@ void BlitString(SkittlesFont* font, const char* text, float* x, int y, int r, in
 
 void SurfaceBlitCharacter( SkittlesFont*   font, unsigned char text, MPoint *dPoint, int r, int g, int b, int dropShadow )
 {
-    int width  = font->width[text];
-    int height = font->h;
-    SDL_Rect srcR = { font->across[text], 0, width, height };
-    SDL_Rect dstR = { dPoint->h, dPoint->v, width, height };
-    if (dropShadow > 0)
+    int srcWidth = font->srcWidth[text];
+    int advance  = font->width[text];
+    int height   = font->h;
+
+    if (srcWidth > 0)
     {
-        // Shadow pass: black character, shifted diagonally by dropShadow pixels.
-        SDL_Rect shadowR = { dPoint->h + dropShadow, dPoint->v + dropShadow, width, height };
-        SDL_SetTextureColorMod(font->texture, 0, 0, 0);
-        SDL_RenderCopy(g_renderer, font->texture, &srcR, &shadowR);
+        int drawX = dPoint->h + font->bearingX[text];
+        SDL_Rect srcR = { font->across[text], 0, srcWidth, height };
+        SDL_Rect dstR = { drawX, dPoint->v, srcWidth, height };
+        if (dropShadow > 0)
+        {
+            SDL_Rect shadowR = { drawX + dropShadow, dPoint->v + dropShadow, srcWidth, height };
+            SDL_SetTextureColorMod(font->texture, 0, 0, 0);
+            SDL_RenderCopy(g_renderer, font->texture, &srcR, &shadowR);
+        }
+        SDL_SetTextureColorMod(font->texture, (uint8_t)r, (uint8_t)g, (uint8_t)b);
+        SDL_RenderCopy(g_renderer, font->texture, &srcR, &dstR);
+        SDL_SetTextureColorMod(font->texture, 255, 255, 255);
     }
-    SDL_SetTextureColorMod(font->texture, (uint8_t)r, (uint8_t)g, (uint8_t)b);
-    SDL_RenderCopy(g_renderer, font->texture, &srcR, &dstR);
-    SDL_SetTextureColorMod(font->texture, 255, 255, 255);
-    dPoint->h += width;
+    dPoint->h += advance;
 }
 
 void SurfaceBlitScaledCharacter( SkittlesFont* font, unsigned char text, float* dx, float dy, float scale, int r, int g, int b, int dropShadow, int alpha )
 {
-    int   width   = font->width[text];
-    int   height  = font->h;
-    float sw      = width * scale;
-    float sh      = height * scale;
+    int   srcWidth = font->srcWidth[text];
+    int   advance  = font->width[text];
+    int   height   = font->h;
 
-    SDL_Rect  srcR = { font->across[text], 0, width, height };
-    SDL_FRect dstR = { *dx, dy, sw, sh };
-    if (dropShadow > 0)
+    if (srcWidth > 0)
     {
-        float sd = dropShadow * scale;
-        SDL_FRect shadowR = { *dx + sd, dy + sd, sw, sh };
-        SDL_SetTextureColorMod(font->texture, 0, 0, 0);
+        float sw    = srcWidth * scale;
+        float sh    = height * scale;
+        float drawX = *dx + font->bearingX[text] * scale;
+
+        SDL_Rect  srcR = { font->across[text], 0, srcWidth, height };
+        SDL_FRect dstR = { drawX, dy, sw, sh };
+        if (dropShadow > 0)
+        {
+            float sd = dropShadow * scale;
+            SDL_FRect shadowR = { drawX + sd, dy + sd, sw, sh };
+            SDL_SetTextureColorMod(font->texture, 0, 0, 0);
+            SDL_SetTextureAlphaMod(font->texture, (uint8_t)alpha);
+            SDL_RenderCopyF(g_renderer, font->texture, &srcR, &shadowR);
+        }
+        SDL_SetTextureColorMod(font->texture, (uint8_t)r, (uint8_t)g, (uint8_t)b);
         SDL_SetTextureAlphaMod(font->texture, (uint8_t)alpha);
-        SDL_RenderCopyF(g_renderer, font->texture, &srcR, &shadowR);
+        SDL_RenderCopyF(g_renderer, font->texture, &srcR, &dstR);
+        SDL_SetTextureColorMod(font->texture, 255, 255, 255);
+        SDL_SetTextureAlphaMod(font->texture, 255);
     }
-    SDL_SetTextureColorMod(font->texture, (uint8_t)r, (uint8_t)g, (uint8_t)b);
-    SDL_SetTextureAlphaMod(font->texture, (uint8_t)alpha);
-    SDL_RenderCopyF(g_renderer, font->texture, &srcR, &dstR);
-    SDL_SetTextureColorMod(font->texture, 255, 255, 255);
-    SDL_SetTextureAlphaMod(font->texture, 255);
-    *dx += sw;
+    *dx += advance * scale;
 }
 
 void SurfaceBlitCursor( MPoint mouseHere, CC_RGBSurface* surface )
