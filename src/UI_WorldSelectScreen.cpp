@@ -181,15 +181,6 @@ static void RenderWorldSelectFrame(CC_RGBSurface* bgSurface, CC_RGBSurface* draw
         else
             srcX = offset % W;
 
-        // Apply phase offset for Green/Purple (index 1 and 3)
-        if (i == 1 || i == 3)
-        {
-            if (kCongaScrollRight[i])
-                srcX = (srcX + W/2) % W;
-            else
-                srcX = (srcX + W/2) % W;
-        }
-
         // Compute vertical bounce (hop ≤ 0 means jump upward)
         float cycle   = hopCycle + kCongaPhase[i];
         float hopRaw  = -kCongaBounce[i] * sinf(cycle);
