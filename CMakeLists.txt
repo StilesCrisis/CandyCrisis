@@ -139,6 +139,9 @@ add_custom_command(TARGET CandyCrisis POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_SOURCE_DIR}/web/apple-touch-icon.png"
         "${CMAKE_CURRENT_BINARY_DIR}/apple-touch-icon.png"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/web/icon-1024.png"
+        "${CMAKE_CURRENT_BINARY_DIR}/icon-1024.png"
     COMMENT "Copying web assets"
     VERBATIM
 )
@@ -313,6 +316,7 @@ add_custom_target(WebDist ALL
         "${CMAKE_CURRENT_BINARY_DIR}/manifest.json"
         "${CMAKE_CURRENT_BINARY_DIR}/favicon.png"
         "${CMAKE_CURRENT_BINARY_DIR}/apple-touch-icon.png"
+        "${CMAKE_CURRENT_BINARY_DIR}/icon-1024.png"
         ${PKG_OUTPUTS}
         "${DIST_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

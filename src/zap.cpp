@@ -265,35 +265,36 @@ void KillBlobs( int player )
     };
 	static const int
                 blobGraphic[kZapFrames] = { kDying,   kDying,   kDying,   kDying,   kSquish1,
-								            kSquish1, kSquish1, kSquish1, kSquish2, kSquish2, 
+								            kSquish1, kSquish1, kSquish1, kSquish2, kSquish2,
 			 					            kSquish2, kSquish2, kSquish3, kSquish3, kSquish3,
 								            kSquish3, kSquish4, kSquish4, kSquish4, kSquish4 },
 		  		grayGraphic[kZapFrames] = { kGrayBlink1, kGrayBlink1, kGrayBlink1,
-		  						            kGrayBlink1, kGrayBlink1, kGrayBlink1, 
+		  						            kGrayBlink1, kGrayBlink1, kGrayBlink1,
 		  						            kGrayBlink2, kGrayBlink2, kGrayBlink2,
-		  						            kGrayBlink2, kGrayBlink2, kGrayBlink2, 
+		  						            kGrayBlink2, kGrayBlink2, kGrayBlink2,
 		  						            kGrayBlink3, kGrayBlink3, kGrayBlink3,
-		  					            	kGrayBlink3, kGrayBlink3, kGrayBlink3, 
+		  					            	kGrayBlink3, kGrayBlink3, kGrayBlink3,
 		  						            kGrayBlink3, kGrayBlink3 };
 	MRect myRect;
 	MBoolean busy = false;
-	
+
 	char *scan;
-	
+
 	if( blobTime[player] > GameTickCount( ) )
 		return;
-	
+
 	blobTime[player]++;
 
+	// Collect blob rects that need sprite-layer cleanup, deferred to Pass 2 where they're free.
+	struct BlobCleanup { MRect rect; int x, y, level; bool hasChunks; };
+	BlobCleanup toClean[kGridAcross * kGridDown];
+	int cleanCount = 0;
+	MRect scoreRect = {};
+	bool hasScoreRect = false;
+
+	// Pass 1: update state and draw to playerSurface (background layer) only.
 	Gfx_AcquireSurface( playerSurface[player] );
-	
-	// clear grenade sprite
-	if( grenadeFrame[player] <= kBlastFrames )
-	{
-		CleanSpriteArea( player, &grenadeRect[player] );
-		if( grenadeFrame[player] == kBlastFrames ) grenadeFrame[player]++;
-	}
-		
+
 	for( x=0; x<kGridAcross; x++ )
 	{
 		for( y=0; y<kGridDown; y++ )
@@ -304,18 +305,17 @@ void KillBlobs( int player )
 			{
 				death[player][x][y]++;
 				busy = true;
-				
+
 				CalcBlobRect( x, y, &myRect );
-				
+
 				if( death[player][x][y] >= 0 && death[player][x][y] <= kZapFrames ) // draw its death
-				{					
+				{
 					if( death[player][x][y] == kZapFrames )
 					{
 						grid[player][x][y] = kEmpty;
 						suction[player][x][y] = kNoSuction;
 						charred[player][x][y] = kNoCharring;
 						SurfaceDrawBlob( player, &myRect, kEmpty, kNoSuction, kNoCharring );
-						CleanSpriteArea( player, &myRect );
 					}
 					else
 					{
@@ -323,16 +323,15 @@ void KillBlobs( int player )
 								         grid[player][x][y],
 								         blobGraphic[ death[player][x][y] ],
 								         kNoCharring );
-						CleanSpriteArea( player, &myRect );
 					}
-					
-					CleanChunks( player, x, y, death[player][x][y], character[player].zapStyle );
+
+					toClean[cleanCount++] = { myRect, x, y, death[player][x][y], true };
 				}
 				else
 				{
 					SurfaceDrawBlob( player, &myRect, grid[player][x][y],
 								(blobTime[player] & 2)? kFlashDarkBlob: kNoSuction, kNoCharring );
-					CleanSpriteArea( player, &myRect );
+					toClean[cleanCount++] = { myRect, x, y, -1, false };
 				}
 			}
 			else
@@ -341,7 +340,7 @@ void KillBlobs( int player )
 					suction[player][x][y] == kGrayBlink1 )
 				{
 					CalcBlobRect( x, y, &myRect );
-					
+
 					if( death[player][x][y] >= 0 && death[player][x][y] <= kZapFrames )
 					{
 						if( death[player][x][y] == kZapFrames )
@@ -356,38 +355,63 @@ void KillBlobs( int player )
 							SurfaceDrawSprite( &myRect, kGray, grayGraphic[ death[player][x][y] ] );
 							busy = true;
 						}
-						CleanSpriteArea( player, &myRect );
+						toClean[cleanCount++] = { myRect, x, y, -1, false };
 					}
-					
+
 					death[player][x][y]++;
 				}
 			}
 		}
 	}
-	
-	// draw score info above blobs but below chunks and explosions
-	
+
 	if( zapScoreFrame[player] < arrsize(shading) )
 	{
         float position = zapScoreFrame[player];
         float lastPos  = position - 1;
-        
+
         position = position * (position * (position * (0.0476275 - 0.000348595 * position) - 2.39227) + 52.7719) - 17.1217; // 3-scale
         lastPos  = lastPos  * (lastPos  * (lastPos  * (0.0476275 - 0.000348595 * lastPos ) - 2.39227) + 52.7719) - 17.1217; // 3-scale
-        
-        myRect.top    = zapScorePt[player].v - position;
-		myRect.left   = zapScorePt[player].h;
-		myRect.bottom = zapScorePt[player].v - lastPos + zapFont->h;
-		myRect.right  = myRect.left + zapScoreWidth[player];
-		CleanSpriteArea( player, &myRect );
 
+        scoreRect.top    = zapScorePt[player].v - position;
+		scoreRect.left   = zapScorePt[player].h;
+		scoreRect.bottom = zapScorePt[player].v - lastPos + zapFont->h;
+		scoreRect.right  = scoreRect.left + zapScoreWidth[player];
+		hasScoreRect = true;
+	}
+
+	Gfx_ReleaseSurface( playerSurface[player] );
+
+	// Pass 2: all sprite-layer work. CleanSpriteArea targets playerSpriteSurface, which is
+	// already acquired here, so SDL's same-target early-out eliminates all render-target switches.
+	Gfx_AcquireSurface( playerSpriteSurface[player] );
+
+	// clear grenade sprite
+	if( grenadeFrame[player] <= kBlastFrames )
+	{
+		CleanSpriteArea( player, &grenadeRect[player] );
+		if( grenadeFrame[player] == kBlastFrames ) grenadeFrame[player]++;
+	}
+
+	// clear blob and chunk areas collected in Pass 1
+	for( int i=0; i<cleanCount; i++ )
+	{
+		CleanSpriteArea( player, &toClean[i].rect );
+		if( toClean[i].hasChunks )
+			CleanChunks( player, toClean[i].x, toClean[i].y, toClean[i].level, character[player].zapStyle );
+	}
+
+	// clear score area
+	if( hasScoreRect )
+		CleanSpriteArea( player, &scoreRect );
+
+	// draw score info above blobs but below chunks and explosions
+	if( zapScoreFrame[player] < arrsize(shading) )
+	{
 		if( zapScoreFrame[player] < arrsize(shading)-1 )
-		{		
-			Gfx_AcquireSurface( playerSpriteSurface[player] );	
-			
-			float dx = (float)myRect.left;
-			float ox = (float)myRect.left;
-			int   dy = myRect.top;
+		{
+			float dx = (float)scoreRect.left;
+			float ox = (float)scoreRect.left;
+			int   dy = scoreRect.top;
 			scan = zapScore[player];
 			while( *scan )
 			{
@@ -395,15 +419,10 @@ void KillBlobs( int player )
 				SurfaceBlitWeightedCharacter( zapOutline, *scan, &ox, dy, 0,                 0,                 0,                 shading[zapScoreFrame[player]] );
 				scan++;
 			}
-			
-			Gfx_ReleaseSurface( playerSpriteSurface[player] );	
-
-			zapScoreFrame[player]++;
 			busy = true;
-		}	
+		}
+		zapScoreFrame[player]++;
 	}
-		
-	///////////////////////////////////////////////////////////////
 
 	for( x=0; x<kGridAcross; x++ )
 	{
@@ -418,26 +437,22 @@ void KillBlobs( int player )
 			}
 		}
 	}
-	
-	Gfx_ReleaseSurface( playerSurface[player] );
-	
+
 	if( grenadeFrame[player] < kBlastFrames )
 	{
 		busy = true;
-		
-		Gfx_AcquireSurface( playerSpriteSurface[player] );
-		
+
 		myRect.top = grenadeFrame[player] * kBlastHeight;
 		myRect.left = 0;
 		myRect.bottom = myRect.top + kBlastHeight;
 		myRect.right = kBlastWidth;
-		
+
 		SurfaceBlendOver( playerSpriteSurface[player], &grenadeRect[player], blastSurface, &myRect );
 
 		grenadeFrame[player]++;
-
-		Gfx_ReleaseSurface( playerSpriteSurface[player] );
 	}
+
+	Gfx_ReleaseSurface( playerSpriteSurface[player] );
 	
 	if( !busy && role[player] == kKillBlobs )
 	{
@@ -509,9 +524,7 @@ void CleanChunks( int player, int x, int y, int level, int style )
 {
 	int count, color, type;
 	MRect chunkRect;
-	
-    Gfx_AcquireSurface( playerSpriteSurface[player] );
-		
+
     for( count=-3; count<=3; count++ )
     {
         if( count != 0 )
@@ -522,7 +535,7 @@ void CleanChunks( int player, int x, int y, int level, int style )
                 GetZapStyle( player, &chunkRect, &color, &type, count, level-1, style );
                 CleanSpriteArea( player, &chunkRect );
             }
-            
+
             if( level < kZapFrames )
             {
                 CalcBlobRect( x, y, &chunkRect );
@@ -531,17 +544,13 @@ void CleanChunks( int player, int x, int y, int level, int style )
             }
         }
     }
-    
-    Gfx_ReleaseSurface( playerSpriteSurface[player] );
 }
 
 void DrawChunks( int player, int x, int y, int level, int style )
 {
 	int count, color, type;
 	MRect chunkRect;
-	
-    Gfx_AcquireSurface( playerSpriteSurface[player] );
-    
+
     for( count=-3; count<=3; count++ )
     {
         if( count != 0 )
@@ -552,8 +561,6 @@ void DrawChunks( int player, int x, int y, int level, int style )
             SurfaceDrawSprite( &chunkRect, color, type );
         }
     }
-    
-    Gfx_ReleaseSurface( playerSpriteSurface[player] );
 }
 
 void CleanSplat( int player, int x, int y, int level )
