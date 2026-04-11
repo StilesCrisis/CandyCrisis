@@ -1,8 +1,8 @@
 ///
-///  keyselect.h
+///  Input.h
 ///
 
 #pragma once
-#include "Platform.h"
 
 void CheckKeys();
+void ResetTapDetection();

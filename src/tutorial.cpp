@@ -15,7 +15,7 @@
 #include "gameticks.h"
 #include "soundfx.h"
 #include "opponent.h"
-#include "keyselect.h"
+#include "Input.h"
 #include "Platform.h"
 
 #include <string.h>

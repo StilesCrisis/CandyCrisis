@@ -29,7 +29,7 @@
 #include "font.h"
 #include "music.h"
 #include "soundfx.h"
-#include "keyselect.h"
+#include "Input.h"
 #include "level.h"
 #include "victory.h"
 #include "hiscore.h"

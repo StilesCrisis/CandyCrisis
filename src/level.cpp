@@ -27,7 +27,7 @@
 #include "victory.h"
 #include "blitter.h"
 #include "zap.h"
-#include "keyselect.h"
+#include "Input.h"
 #include "tutorial.h"
 #include "pause.h"
 #include "UI_VictoryScreen.h"

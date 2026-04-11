@@ -12,7 +12,7 @@
 #include "graphics.h"
 #include "score.h"
 #include "hiscore.h"
-#include "keyselect.h"
+#include "Input.h"
 #include "font.h"
 #include "blitter.h"
 #include "random.h"

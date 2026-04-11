@@ -171,15 +171,25 @@ deps/
   FMOD/api/core/inc/   FMOD/api/core/lib/x64/
 ```
 
-### Configure (one-time, from a Visual Studio command prompt)
+### Configure (one-time)
 
-```bat
-cmake -S \path\to\candy-crisis-web -B build-windows -G Ninja
+From a **Developer PowerShell for VS 2022** prompt (or any shell with the MSVC environment loaded):
+
+```powershell
+cmake -S \path\to\candy-crisis -B build-windows -G Ninja
+```
+
+If running from a plain shell (e.g. Git Bash), load the VS environment first:
+
+```powershell
+Import-Module "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
+Enter-VsDevShell -VsInstallPath "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools" -SkipAutomaticLocation
+cmake -S \path\to\candy-crisis -B build-windows -G Ninja
 ```
 
 ### Build
 
-```bat
+```powershell
 cmake --build build-windows
 ```
 

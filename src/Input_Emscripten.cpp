@@ -1,16 +1,15 @@
 ///
 ///  Input_Emscripten.cpp
 ///
-///  Compiled instead of keyselect.cpp for WebAssembly builds, exactly as
-///  Input_iOS.mm replaces keyselect.cpp for iOS/tvOS builds.
+///  Compiled instead of Input_SDL.cpp for WebAssembly builds.
 ///
 ///  Owns:
-///    - Web virtual controller state (mirrors g_iPadVirtualController)
+///    - Web virtual controller state
 ///    - WASM exports for JS touch handlers to call into
-///    - CheckKeys() implementation (keyboard + touch, same structure as Input_iOS.mm)
+///    - CheckKeys() implementation (keyboard + touch)
 
 #include "stdafx.h"
-#include "keyselect.h"
+#include "Input.h"
 #include "Globals.h"
 #include "Platform.h"
 #include "SDLU.h"
@@ -23,7 +22,7 @@
 // ---------------------------------------------------------------------------
 static bool s_pauseButtonPressed = false;
 
-// Triple-tap detection state (file scope so Platform_ResetTapDetection can clear it)
+// Triple-tap detection state (file scope so ResetTapDetection can clear it)
 static uint32_t s_tapTimes[3] = {};
 static int      s_tapIndex    = 0;
 
@@ -87,7 +86,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void Platform_SetTouchTranslation(int player, fl
 
 
 // ---------------------------------------------------------------------------
-// CheckKeys — mirrors the structure of CheckKeys() in Input_iOS.mm
+// CheckKeys
 // ---------------------------------------------------------------------------
 void CheckKeys()
 {
@@ -104,7 +103,7 @@ void CheckKeys()
         if (pressedKeys[SDL_GetScancodeFromKey(playerKeys[player][3])]) tempHitKey[player].rotate = 1;
     }
 
-    // Web virtual controllers — mirrors the iPad virtual controller block in Input_iOS.mm.
+    // Web virtual controllers
     for (int i = 0; i < 2; i++)
     {
         // Tap → rotate (consumed immediately, mirrors m_tap handling)
@@ -129,7 +128,7 @@ void CheckKeys()
         }
     }
 
-    // Transfer to hitKey counters — mirrors the transfer block in Input_iOS.mm.
+    // Transfer to hitKey counters.
     for (int player = 0; player < 2; player++)
     {
         if (tempHitKey[player].left > tempHitKey[player].right)
@@ -160,7 +159,7 @@ void CheckKeys()
     s_pauseButtonPressed = false;
 }
 
-void Platform_ResetTapDetection()
+void ResetTapDetection()
 {
     s_tapTimes[0] = s_tapTimes[1] = s_tapTimes[2] = 0;
     s_tapIndex = 0;

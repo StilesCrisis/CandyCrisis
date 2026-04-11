@@ -17,6 +17,7 @@
 #include "gworld.h"
 #include "main.h"
 #include "Platform.h"
+#include "Input.h"
 #include <deque>
 #include <assert.h>
 
@@ -422,7 +423,7 @@ void SDLU_SetEscapeTap()
 void SDLU_ResetEscapeState()
 {
     s_escapeTap = false;
-    Platform_ResetTapDetection();
+    ResetTapDetection();
 }
 
 void SDLU_SetMouseFromCanvas(int canvasX, int canvasY)

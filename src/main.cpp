@@ -299,7 +299,7 @@
 #include "gameticks.h"
 #include "level.h"
 #include "opponent.h"
-#include "keyselect.h"
+#include "Input.h"
 #include "blitter.h"
 #include "prefs.h"
 #include "tweak.h"
@@ -344,7 +344,7 @@ int main(int, char *[])
             break;
         
         DoFullRepaint = NeedRefresh;
-        CheckKeys( );
+        CheckKeys();
         HandlePlayers( );
         UpdateStage();
         UpdateOpponent( );

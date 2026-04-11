@@ -28,7 +28,6 @@ void        Platform_PromptForHighScoreName(char* name, int maxLen, const char* 
 void        Platform_CompositeOverlays();
 bool        Platform_IsTouchDevice();
 bool        Platform_IsPauseButtonTap(MPoint canvasPt);
-void        Platform_ResetTapDetection();
 
 extern Platform_Keycode playerKeys[2][4];
 extern const Platform_Keycode defaultPlayerKeys[2][4];
