@@ -138,7 +138,7 @@ void GetBlobGraphics()
     maskSurface     = LoadPICTAsMaskSurface( picBlobMask );
     charMaskSurface = LoadPICTAsMaskSurface( picCharMask );
 
-    if (g_renderer && blobPixels && maskSurface)
+    if (blobPixels && maskSurface)
     {
         const int pitchPix = blobW;
 
@@ -178,7 +178,7 @@ void GetBlobGraphics()
     blastSurface     = Gfx_InitRGBSurface(blastW,    blastH);
     blastMaskSurface = Gfx_InitRGBSurface(blastMskW, blastMskH);
 
-    if (g_renderer && blastPixels && blastMskPixels)
+    if (blastPixels && blastMskPixels)
     {
         const int pitchPix = blastW;
         const int mskPitch = blastMskW;
@@ -206,7 +206,7 @@ void GetBlobGraphics()
     // Build strip textures for GPU-based charring.
     // s_charSrcTex:   kBombTop-1 row, RGB from blobPixels, alpha=255 (seeds scratch with BLEND_NONE).
     // s_charAlphaTex: kBombBottom-1 row, white pixels, alpha = blue channel (per-pixel opacity source).
-    if (g_renderer && blobPixels)
+    if (blobPixels)
     {
         const int stripW     = blobW;
         const int pitchPix   = blobW;
@@ -257,6 +257,11 @@ void InitPlayerWorlds()
 	{
         playerSurface[count]       = Gfx_InitRGBSurface(kGridAcross * kBlobHorizSize, kGridDown * kBlobVertSize);
 		playerSpriteSurface[count] = Gfx_InitRGBSurface(kGridAcross * kBlobHorizSize, kGridDown * kBlobVertSize);
+        // These surfaces are only ever used as sources in Gfx_BlitSurface (BLEND_NONE), never
+        // via raw SDL_RenderCopy. Setting them to NONE lets Gfx_RenderCopyBlend take the fast
+        // path on every CleanSpriteArea call — the hot path during the zap animation.
+        SDL_SetTextureBlendMode(playerSurface[count]->texture,       SDL_BLENDMODE_NONE);
+        SDL_SetTextureBlendMode(playerSpriteSurface[count]->texture, SDL_BLENDMODE_NONE);
 	}
 }
 
@@ -510,11 +515,8 @@ CC_RGBSurface*   LoadPICTAsRGBSurface(int pictID, const char* suffixA, const cha
     if (!pixels) return nullptr;
 
     CC_RGBSurface* surface = Gfx_InitRGBSurface(w, h);
-    if (g_renderer)
-    {
-        SDL_UpdateTexture(surface->texture, NULL, pixels, w * sizeof(CC_RGBPixel));
-        SDL_SetTextureBlendMode(surface->texture, Gfx_PremultipliedBlendMode());
-    }
+    SDL_UpdateTexture(surface->texture, NULL, pixels, w * sizeof(CC_RGBPixel));
+    SDL_SetTextureBlendMode(surface->texture, Gfx_PremultipliedBlendMode());
     free(pixels);
     return surface;
 }
@@ -598,7 +600,6 @@ CC_MaskSurface*  LoadPICTAsMaskSurface(int pictID, const char* suffixA, const ch
     }
 
     // Build GPU alpha-mask texture
-    if (g_renderer)
     {
         SDL_Surface* texPixels = SDL_CreateRGBSurface(0, aw, ah, 32,
                                                       RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
@@ -857,12 +858,9 @@ CC_RGBSurface* Gfx_InitRGBSurface(int width, int height)
     surface->clip_rect = {0, 0, width, height};
     surface->pitch = width * sizeof(CC_RGBPixel);
 
-    if (g_renderer)
-    {
-        surface->texture = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_ARGB8888,
-                                             SDL_TEXTUREACCESS_TARGET, width, height);
-        SDL_SetTextureBlendMode(surface->texture, SDL_BLENDMODE_NONE);
-    }
+    surface->texture = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_ARGB8888,
+                                         SDL_TEXTUREACCESS_TARGET, width, height);
+    SDL_SetTextureBlendMode(surface->texture, SDL_BLENDMODE_BLEND);
 
     return surface;
 }

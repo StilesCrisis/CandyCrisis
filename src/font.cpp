@@ -125,31 +125,28 @@ static SkittlesFont* LoadFont( SkittlesFont* font, int pictID, unsigned char* le
     if (packedWidth > 4096)
         Platform_Error( "LoadFont: repacked texture exceeds 4096px — add more font image rows" );
     // Pixel format: white (0xFFFFFF) with alpha = 255 - coverage.
-    if (g_renderer)
+    SDL_Surface* texData = SDL_CreateRGBSurface(0, packedWidth, fh, 32,
+                                                 RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
+    for (int y = 0; y < fh; y++)
     {
-        SDL_Surface* texData = SDL_CreateRGBSurface(0, packedWidth, fh, 32,
-                                                     RED_MASK, GREEN_MASK, BLUE_MASK, ALPHA_MASK);
-        for (int y = 0; y < fh; y++)
+        const uint8_t* src = packed + y * packedWidth;
+        uint32_t*      dst = (uint32_t*)((uint8_t*)texData->pixels + y * texData->pitch);
+        for (int x = 0; x < packedWidth; x++)
         {
-            const uint8_t* src = packed + y * packedWidth;
-            uint32_t*      dst = (uint32_t*)((uint8_t*)texData->pixels + y * texData->pitch);
-            for (int x = 0; x < packedWidth; x++)
-            {
-                uint8_t alpha = 255 - src[x];
-                dst[x] = ((uint32_t)alpha << BITS_PER_3CHANNELS) | 0x00FFFFFF;
-            }
+            uint8_t alpha = 255 - src[x];
+            dst[x] = ((uint32_t)alpha << BITS_PER_3CHANNELS) | 0x00FFFFFF;
         }
-#if 0 && !defined(__EMSCRIPTEN__)
-        {
-            char path[64];
-            snprintf(path, sizeof(path), "/tmp/font_packed_%d.png", pictID);
-            IMG_SavePNG(texData, path);
-        }
-#endif
-        font->texture = SDL_CreateTextureFromSurface(g_renderer, texData);
-        SDL_FreeSurface(texData);
-        SDL_SetTextureBlendMode(font->texture, SDL_BLENDMODE_BLEND);
     }
+#if 0 && !defined(__EMSCRIPTEN__)
+    {
+        char path[64];
+        snprintf(path, sizeof(path), "/tmp/font_packed_%d.png", pictID);
+        IMG_SavePNG(texData, path);
+    }
+#endif
+    font->texture = SDL_CreateTextureFromSurface(g_renderer, texData);
+    SDL_FreeSurface(texData);
+    SDL_SetTextureBlendMode(font->texture, SDL_BLENDMODE_BLEND);
 
     // Step 6: store font metrics.
     for (int i = 0; i < numGlyphs; i++)
