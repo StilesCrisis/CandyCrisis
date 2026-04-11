@@ -366,6 +366,11 @@ target_link_libraries(CandyCrisis PRIVATE
     "-framework AppKit"
 )
 
+set_target_properties(CandyCrisis PROPERTIES
+    BUILD_RPATH "@executable_path"
+    INSTALL_RPATH "@executable_path"
+)
+
 # Copy libfmod.dylib next to the executable after each build.
 add_custom_command(TARGET CandyCrisis POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
