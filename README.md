@@ -151,7 +151,7 @@ The executable and `CandyCrisisResources/` folder land in `build-macos/`.
 ### Prerequisites
 
 - [CMake](https://cmake.org/download/) 3.20+
-- [Visual Studio Build Tools 2026](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2026) (C++ workload) — or the full Visual Studio IDE
+- [Visual Studio Build Tools 2022](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) (C++ workload) — or the full Visual Studio IDE
 - [Ninja](https://ninja-build.org/)
 
 Download the following SDKs and extract them under `deps/`:

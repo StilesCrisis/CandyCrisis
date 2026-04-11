@@ -1,0 +1,6 @@
+build-web/
+build-windows/
+build-macos/
+deps/SDL2/
+deps/SDL2_image/
+deps/FMOD/
