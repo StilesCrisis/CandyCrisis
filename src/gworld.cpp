@@ -76,11 +76,18 @@ SDL_BlendMode Gfx_AlphaMultiplyBlendMode()
 // SDL2 reads texture blend mode at flush time, not at submission time.
 // This wrapper guarantees the blend mode is active when the batch executes:
 // set → queue → flush → restore. Callers never need to manage the ordering.
+// Fast path: if the texture already has the requested blend mode and alpha=255,
+// just queue the copy — no flush needed because there is nothing to lock in.
 void Gfx_RenderCopyBlend(SDL_Texture* src, SDL_BlendMode blend,
                           const SDL_Rect* srcR, const SDL_Rect* dstR, Uint8 alpha)
 {
     SDL_BlendMode prev;
     SDL_GetTextureBlendMode(src, &prev);
+    if (prev == blend && alpha == 255)
+    {
+        SDL_RenderCopy(g_renderer, src, srcR, dstR);
+        return;
+    }
     SDL_SetTextureBlendMode(src, blend);
     SDL_SetTextureAlphaMod(src, alpha);
     SDL_RenderCopy(g_renderer, src, srcR, dstR);
@@ -854,7 +861,7 @@ CC_RGBSurface* Gfx_InitRGBSurface(int width, int height)
     {
         surface->texture = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_ARGB8888,
                                              SDL_TEXTUREACCESS_TARGET, width, height);
-        SDL_SetTextureBlendMode(surface->texture, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureBlendMode(surface->texture, SDL_BLENDMODE_NONE);
     }
 
     return surface;
