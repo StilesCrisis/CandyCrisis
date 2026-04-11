@@ -790,15 +790,32 @@ void UI_ShowPuppetShowForLevel(int level, TransitionAfterUIScreen behavior)
             break;
     }
 
-    // Snapshot the resulting gameplay frame (GPU→GPU) before the puppet show
-    // overwrites g_frontTexture with its own content.
+    // Snapshot the resulting gameplay frame before the puppet show overwrites
+    // g_frontTexture with its own content.
+    //
+    // Avoid a render-to-texture hazard: on some older GPU drivers, a GPU→GPU
+    // copy immediately after rendering to a texture can sample stale data because
+    // the prior draw commands may not have retired yet. Instead, we temporarily
+    // redirect g_frontTexture/g_frontSurface to gameplaySnap and re-run
+    // RefreshAll(), rendering the gameplay frame directly into gameplaySnap.
+    // The crossfade then reads gameplaySnap long after all writes are done —
+    // no hazard.
     SDL_Texture* gameplaySnap = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_ARGB8888,
                                                    SDL_TEXTUREACCESS_TARGET, 1920, 1080);
     if (gameplaySnap)
     {
         SDL_SetTextureBlendMode(gameplaySnap, SDL_BLENDMODE_BLEND);
+
+        SDL_Texture*    savedFrontTexture = g_frontTexture;
+        SDL_Texture*    savedSurfaceTexture = g_frontSurface->texture;
+        g_frontTexture          = gameplaySnap;
+        g_frontSurface->texture = gameplaySnap;
         SDL_SetRenderTarget(g_renderer, gameplaySnap);
-        SDL_RenderCopy(g_renderer, g_frontTexture, nullptr, nullptr);
+
+        RefreshAll();
+
+        g_frontTexture          = savedFrontTexture;
+        g_frontSurface->texture = savedSurfaceTexture;
         SDL_SetRenderTarget(g_renderer, g_frontTexture);
     }
 
