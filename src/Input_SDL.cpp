@@ -1,4 +1,4 @@
-// keyselect.c
+// Input_SDL.cpp
 
 #include "stdafx.h"
 #include "SDLU.h"
@@ -10,7 +10,7 @@
 
 #include "main.h"
 #include "players.h"
-#include "keyselect.h"
+#include "Input.h"
 
 
 void CheckKeys()
@@ -52,4 +52,4 @@ void CheckKeys()
 	pauseKey = pressedKeys[SDL_SCANCODE_ESCAPE];
 }
 
-void Platform_ResetTapDetection() {}
+void ResetTapDetection() {}

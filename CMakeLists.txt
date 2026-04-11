@@ -49,10 +49,9 @@ if(EMSCRIPTEN)
 set(LIBOPENMPT_LIB     "${DEPS_DIR}/libopenmpt/lib/libopenmpt.a")
 set(LIBOPENMPT_INCLUDE "${DEPS_DIR}/libopenmpt/include")
 
-# Use Input_Emscripten.cpp instead of keyselect.cpp, mirroring how the iOS build
-# uses Input_iOS.mm in place of keyselect.cpp.
-# Input_Emscripten.cpp is already picked up by the glob; just drop keyselect.cpp.
-list(REMOVE_ITEM SOURCES "${SRC_DIR}/keyselect.cpp")
+# Use Input_Emscripten.cpp instead of Input_SDL.cpp.
+# Input_Emscripten.cpp is already picked up by the glob; just drop Input_SDL.cpp.
+list(REMOVE_ITEM SOURCES "${SRC_DIR}/Input_SDL.cpp")
 
 # Build ID for cache-busting dynamically-loaded package scripts.
 string(TIMESTAMP BUILD_ID "%Y%m%d%H%M%S")
@@ -415,6 +414,9 @@ set(SDL2_IMAGE_LIB_DIR  "${DEPS_DIR}/SDL2_image/lib/x64")
 
 set(FMOD_INC        "${DEPS_DIR}/FMOD/api/core/inc")
 set(FMOD_LIB_DIR    "${DEPS_DIR}/FMOD/api/core/lib/x64")
+
+# Use Input_SDL.cpp keyboard input; drop Emscripten touch input.
+list(REMOVE_ITEM SOURCES "${SRC_DIR}/Input_Emscripten.cpp")
 
 add_executable(CandyCrisis WIN32 ${SOURCES})
 

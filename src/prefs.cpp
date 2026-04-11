@@ -13,7 +13,7 @@
 #include "music.h"
 #include "soundfx.h"
 #include "hiscore.h"
-#include "keyselect.h"
+#include "Input.h"
 #include "Globals.h"
 
 #define PREF_NAME(x)   x

@@ -18,7 +18,7 @@
 #include "blitter.h"
 #include "music.h"
 #include "hiscore.h"
-#include "keyselect.h"
+#include "Input.h"
 #include "zap.h"
 #include "pause.h"
 #include "font.h"

@@ -14,7 +14,7 @@
 #include "victory.h"
 #include "grays.h"
 #include "level.h"
-#include "keyselect.h"
+#include "Input.h"
 
 CC_RGBSurface*        backdropSurface = NULL;
 
