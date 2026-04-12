@@ -127,6 +127,11 @@ void GetBlobGraphics()
 	
     boardSurface[0] = Gfx_InitRGBSurface(width, height);
     boardSurface[1] = Gfx_InitRGBSurface(width, height);
+    // boardSurface is only ever used as a source in Gfx_BlitSurface (BLEND_NONE).
+    // Setting NONE here lets Gfx_RenderCopyBlend take the fast path (no flush) on
+    // every SurfaceDrawBoard call — critical during the zap animation.
+    SDL_SetTextureBlendMode(boardSurface[0]->texture, SDL_BLENDMODE_NONE);
+    SDL_SetTextureBlendMode(boardSurface[1]->texture, SDL_BLENDMODE_NONE);
 
 	// Get blob surfaces
 
