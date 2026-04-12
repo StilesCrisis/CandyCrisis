@@ -4,3 +4,4 @@ build-mac/
 deps/SDL2/
 deps/SDL2_image/
 deps/FMOD/
+.claude
