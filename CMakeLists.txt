@@ -212,15 +212,40 @@ foreach(dir ${CHAR_DIRS_SRC})
 endforeach()
 
 # World-complete bundles — streamed while playing the final level of each world.
-# World 1 (levels 1-4) → pkg_world1  (PICT_600-609)
-# World 2 (levels 5-8) → pkg_world2  (PICT_610-621)
-# World 3 (levels 9-12) → pkg_world3 (PICT_630-649, includes credits + post-credits)
+# World 1 (levels 1-4)  → pkg_world1        (PICT_600-609)
+# World 2 (levels 5-8)  → pkg_world2_shared (PICT_617-621, shared layers)
+#                        + pkg_world2        (PICT_610-616, unique layers)
+# World 3 (levels 9-12) → pkg_world2_shared (already loaded or fetched alongside pkg_world3)
+#                        + pkg_world3        (PICT_630-649, includes credits + post-credits)
 #
-# NOTE: PICT_617-621 (World 2 victory layers 6-10) are also included in pkg_world3.
-# The World 3 victory screen reuses these layers (see kWorld3Layers in UI_VictoryScreen.cpp)
-# but a player can open the page and play World 3 directly without ever loading pkg_world2.
-# Duplicating them here ensures they are available. The Emscripten FS silently overwrites
-# with identical bytes if pkg_world2 also loaded them.
+# PICT_617-621 (World 2 layers 6-10) are reused by the World 3 victory screen.
+# Splitting them into pkg_world2_shared means they are fetched exactly once regardless
+# of play path, rather than being duplicated across pkg_world2 and pkg_world3.
+
+# Shared layers used by both World 2 and World 3 victory screens.
+add_custom_command(
+    OUTPUT
+        "${CMAKE_CURRENT_BINARY_DIR}/pkg_world2_shared.data"
+        "${CMAKE_CURRENT_BINARY_DIR}/pkg_world2_shared.js"
+    COMMAND "${PYTHON}" "${FILE_PACKAGER}"
+        "pkg_world2_shared.data"
+        "--js-output=pkg_world2_shared.js"
+        "--quiet"
+        "--preload" "CandyCrisisResources/PICT_617.png@CandyCrisisResources/PICT_617.png"
+        "--preload" "CandyCrisisResources/PICT_618.png@CandyCrisisResources/PICT_618.png"
+        "--preload" "CandyCrisisResources/PICT_619.png@CandyCrisisResources/PICT_619.png"
+        "--preload" "CandyCrisisResources/PICT_620.png@CandyCrisisResources/PICT_620.png"
+        "--preload" "CandyCrisisResources/PICT_621.png@CandyCrisisResources/PICT_621.png"
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/CandyCrisis.html"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Packaging shared World 2/3 layers -> pkg_world2_shared"
+    VERBATIM
+)
+list(APPEND PKG_OUTPUTS
+    "${CMAKE_CURRENT_BINARY_DIR}/pkg_world2_shared.data"
+    "${CMAKE_CURRENT_BINARY_DIR}/pkg_world2_shared.js"
+)
+
 foreach(w 1 2 3)
     if(w EQUAL 1)
         set(world_preloads
@@ -244,20 +269,9 @@ foreach(w 1 2 3)
             "--preload" "CandyCrisisResources/PICT_614.png@CandyCrisisResources/PICT_614.png"
             "--preload" "CandyCrisisResources/PICT_615.png@CandyCrisisResources/PICT_615.png"
             "--preload" "CandyCrisisResources/PICT_616.png@CandyCrisisResources/PICT_616.png"
-            "--preload" "CandyCrisisResources/PICT_617.png@CandyCrisisResources/PICT_617.png"
-            "--preload" "CandyCrisisResources/PICT_618.png@CandyCrisisResources/PICT_618.png"
-            "--preload" "CandyCrisisResources/PICT_619.png@CandyCrisisResources/PICT_619.png"
-            "--preload" "CandyCrisisResources/PICT_620.png@CandyCrisisResources/PICT_620.png"
-            "--preload" "CandyCrisisResources/PICT_621.png@CandyCrisisResources/PICT_621.png"
         )
     else()
         set(world_preloads
-            # PICT_617-621: World 2 layers 6-10, shared with World 3 victory screen (see comment above).
-            "--preload" "CandyCrisisResources/PICT_617.png@CandyCrisisResources/PICT_617.png"
-            "--preload" "CandyCrisisResources/PICT_618.png@CandyCrisisResources/PICT_618.png"
-            "--preload" "CandyCrisisResources/PICT_619.png@CandyCrisisResources/PICT_619.png"
-            "--preload" "CandyCrisisResources/PICT_620.png@CandyCrisisResources/PICT_620.png"
-            "--preload" "CandyCrisisResources/PICT_621.png@CandyCrisisResources/PICT_621.png"
             "--preload" "CandyCrisisResources/PICT_630.jpg@CandyCrisisResources/PICT_630.jpg"
             "--preload" "CandyCrisisResources/PICT_631.png@CandyCrisisResources/PICT_631.png"
             "--preload" "CandyCrisisResources/PICT_632.png@CandyCrisisResources/PICT_632.png"

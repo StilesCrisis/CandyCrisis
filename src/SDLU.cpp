@@ -444,46 +444,77 @@ MBoolean SDLU_EscapeKeyIsPressed( void )
 
 #ifdef __EMSCRIPTEN__
 static bool s_pkgStarted[100] = {};
-static bool s_worldPkgStarted[4] = {};  // index 1-3 used
+
+struct WorldPkgDesc {
+    const char* jsName;    // script base name (without .js)
+    const char* failKey;   // key in Module._pkgFailed
+    const char* sentinel;  // FS path that appears when the package is fully loaded
+    bool*       started;   // shared across table entries that reference the same package
+};
+
+// Per-package started flags.
+static bool s_started_world1       = false;
+static bool s_started_world2shared = false;
+static bool s_started_world2       = false;
+static bool s_started_world3       = false;
+
+// Packages required for each world's victory screen, in fetch order.
+// pkg_world2_shared (PICT_617-621) is needed by both worlds 2 and 3; the shared
+// started pointer ensures it is fetched exactly once regardless of which loads first.
+static const WorldPkgDesc kWorldPkgs[4][2] = {
+    {},  // index 0: unused
+    {    // world 1
+        { "pkg_world1",        "world1",       "CandyCrisisResources/PICT_600.jpg", &s_started_world1       },
+        {},
+    },
+    {    // world 2
+        { "pkg_world2_shared", "world2shared", "CandyCrisisResources/PICT_617.png", &s_started_world2shared },
+        { "pkg_world2",        "world2",       "CandyCrisisResources/PICT_610.jpg", &s_started_world2       },
+    },
+    {    // world 3
+        { "pkg_world2_shared", "world2shared", "CandyCrisisResources/PICT_617.png", &s_started_world2shared },
+        { "pkg_world3",        "world3",       "CandyCrisisResources/PICT_630.jpg", &s_started_world3       },
+    },
+};
 #endif
 
 void SDLU_PrefetchWorldPackage(int world)
 {
 #ifdef __EMSCRIPTEN__
-    if (world < 1 || world > 3 || s_worldPkgStarted[world]) return;
-    s_worldPkgStarted[world] = true;
-
-    EM_ASM({
-        var s = document.createElement('script');
-        s.src = 'pkg_world' + $0 + '.js?v=' + (window._ccBuildId || '0');
-        s.onerror = function() { Module._pkgFailed = Module._pkgFailed || {}; Module._pkgFailed['world' + $0] = true; };
-        document.head.appendChild(s);
-    }, world);
+    if (world < 1 || world > 3) return;
+    for (const WorldPkgDesc& pkg : kWorldPkgs[world])
+    {
+        if (pkg.started == nullptr) break;
+        if (*pkg.started) continue;
+        *pkg.started = true;
+        EM_ASM({
+            var s = document.createElement('script');
+            var key = UTF8ToString($1);
+            s.src = UTF8ToString($0) + '.js?v=' + (window._ccBuildId || '0');
+            s.onerror = function() { Module._pkgFailed = Module._pkgFailed || {}; Module._pkgFailed[key] = true; };
+            document.head.appendChild(s);
+        }, pkg.jsName, pkg.failKey);
+    }
 #endif
 }
 
 void SDLU_LoadWorldPackage(int world)
 {
 #ifdef __EMSCRIPTEN__
-    SDLU_PrefetchWorldPackage(world);  // no-op if already started
-
-    // Sentinel: first PICT of each world-complete bundle.
-    static const char* kSentinels[4] = { nullptr,
-        "CandyCrisisResources/PICT_600.jpg",
-        "CandyCrisisResources/PICT_610.jpg",
-        "CandyCrisisResources/PICT_630.jpg",
-    };
-    const char* sentinel = (world >= 1 && world <= 3) ? kSentinels[world] : nullptr;
-    if (!sentinel) return;
-
-    while (access(sentinel, F_OK) != 0)
+    if (world < 1 || world > 3) return;
+    SDLU_PrefetchWorldPackage(world);  // no-op for already-started packages
+    for (const WorldPkgDesc& pkg : kWorldPkgs[world])
     {
-        if (EM_ASM_INT({ return (Module._pkgFailed && Module._pkgFailed['world' + $0]) ? 1 : 0; }, world))
+        if (pkg.started == nullptr) break;
+        while (access(pkg.sentinel, F_OK) != 0)
         {
-            Platform_Error("SDLU_LoadWorldPackage: package load failed");
-            break;
+            if (EM_ASM_INT({ return (Module._pkgFailed && Module._pkgFailed[UTF8ToString($0)]) ? 1 : 0; }, pkg.failKey))
+            {
+                Platform_Error("SDLU_LoadWorldPackage: package load failed");
+                return;
+            }
+            emscripten_sleep(16);
         }
-        emscripten_sleep(16);
     }
 #endif
 }
