@@ -8,10 +8,8 @@
 void Initialize( void );
 void RetrieveResources( void );
 void CenterRectOnScreen( MRect *rect, double locationX, double locationY );
-int Warp( void );
-void GoToBackground();
-void InitRegistration();
 void NeedRefresh();
+void GameLoop();
 
 
 extern char candyCrisisResources[1024];

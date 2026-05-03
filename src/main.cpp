@@ -343,15 +343,7 @@ int main(int, char *[])
 		if (finished)
             break;
         
-        DoFullRepaint = NeedRefresh;
-        CheckKeys();
-        HandlePlayers( );
-        UpdateStage();
-        UpdateOpponent( );
-        UpdateBalloon( );
-        UpdateStage();
-        UpdateSound( );
-        DoFullRepaint = nullptr;
+        GameLoop();
         
         if (showStartMenu)
         {
@@ -414,7 +406,6 @@ void RetrieveResources( void )
 	
 	InitOpponent( );
 
-	InitStage( );   // must run after backdrop window is open
 	InitGameTickCount( );
 
 	InitPlayers( ); // must run after backdrop window is open
@@ -428,20 +419,17 @@ void RetrieveResources( void )
 	InitTweak( );
 }
 
-
 void ShowTitle( void )
 {
-    Gfx_FillRect( g_frontSurface, &g_frontSurface->clip_rect, {0, 0, 0});
+    DrawPICTInSurface( g_frontSurface, picTitle );
     SDLU_Present();
-    
-    RetrieveResources( );
-    
+
     int time = MTickCount() + 120;
-    
+
+    RetrieveResources( );
+
     while( time > MTickCount() && !SDLU_Button() )
     {
-        DrawPICTInSurface( g_frontSurface, picTitle );
-        SDLU_Present();
         SDLU_Yield();
     }
     
@@ -451,12 +439,6 @@ void ShowTitle( void )
     
     Gfx_FillRect( g_frontSurface, &g_frontSurface->clip_rect, {0, 0, 0});
     SDLU_Present();
-}
-
-
-int Warp( void )
-{
-	return 4;
 }
 
 void Initialize(void)
@@ -505,3 +487,13 @@ void Initialize(void)
 
 }
 
+void GameLoop()
+{
+    DoFullRepaint = NeedRefresh;
+    CheckKeys();
+    HandlePlayers( );
+    UpdateOpponent( );
+    UpdateBalloon( );
+    UpdateSound( );
+    DoFullRepaint = nullptr;
+}

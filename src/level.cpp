@@ -40,58 +40,12 @@ const int kHardLevel   = 90;
 const int kUltraLevel  = 110;
 
 static std::vector<Character>   s_characterList;
-MRect                           stageWindowZRect, stageWindowRect;
-bool                            stageWindowVisible = true;
-int                             stageTime, stageFrame;
-CC_RGBSurface*                  stageMapSurface;
-
 Character character[2];
 int level, players, credits, difficulty[2] = { kMediumLevel, kMediumLevel };
 int difficultyTicks, backdropTicks, backdropFrame;
 int backgroundID = -1;
 
 MBoolean     playerWindowVisible[2] = { true, true };
-
-const int k_stageMapHeight = 256;
-const int k_stageMapWidth = 256;
-
-void InitStage( void )
-{
-    stageWindowZRect = { 0, 0, k_stageMapHeight, k_stageMapWidth };
-    stageMapSurface = Gfx_InitRGBSurface(k_stageMapWidth, k_stageMapHeight);
-    
-    stageWindowRect = stageWindowZRect;
-}
-
-void UpdateStage()
-{
-    if( GameTickCount( ) >= stageTime )
-    {
-        stageTime = GameTickCount() + 15;
-        
-        stageFrame++;
-        DrawStage();
-    }
-}
-
-void DrawStage()
-{
-    if (stageWindowVisible && stageMapSurface != nullptr)
-    {
-        int numStageFrames = stageMapSurface->w / stageWindowZRect.right;
-        int frameToDraw    = stageFrame % numStageFrames;
-
-        MRect  stageWindowOffsetRect = stageWindowZRect;
-        OffsetMRect(&stageWindowOffsetRect, frameToDraw * stageWindowZRect.right, 0);
-        
-        CC_Rect stageWindowOffsetCCRect;
-        CC_Rect stageWindowCCRect;
-        
-        Gfx_BlitFrontSurface(stageMapSurface,
-                             Gfx_MRectToCCRect(&stageWindowOffsetRect, &stageWindowOffsetCCRect),
-                             Gfx_MRectToCCRect(&stageWindowRect,       &stageWindowCCRect));
-    }
-}
 
 void InitGame( int player1, int player2, int startingLevel )
 {
@@ -114,8 +68,7 @@ void InitGame( int player1, int player2, int startingLevel )
 		nextWindowVisible[1] = false;
 		scoreWindowVisible[1] = false;
 		grayMonitorVisible[1] = false;
-        stageWindowVisible = false;
-        
+
         CenterRectOnScreen( &playerWindowRect[0], 0.5, 0.5  );
         CenterRectOnScreen( &scoreWindowRect[0],  0.5, kScoreWindowVertCenter );
         CenterRectOnScreen( &grayMonitorRect[0],  0.5, kGrayMonitorVertCenter );
@@ -137,7 +90,6 @@ void InitGame( int player1, int player2, int startingLevel )
 		nextWindowVisible[1] = true;
 		scoreWindowVisible[1] = true;
 		grayMonitorVisible[1] = true;
-        stageWindowVisible = true;
 
         CenterRectOnScreen( &playerWindowRect[0], kLeftPlayerWindowCenter, 0.5  );
         CenterRectOnScreen( &scoreWindowRect[0],  kLeftPlayerWindowCenter, kScoreWindowVertCenter );
@@ -148,8 +100,7 @@ void InitGame( int player1, int player2, int startingLevel )
         CenterRectOnScreen( &scoreWindowRect[1],  kRightPlayerWindowCenter, kScoreWindowVertCenter );
         CenterRectOnScreen( &grayMonitorRect[1],  kRightPlayerWindowCenter, kGrayMonitorVertCenter );
         CenterRectOnScreen( &nextWindowRect[1],   0.62, kNextWindowVertCenter2P );
-        
-        CenterRectOnScreen( &stageWindowRect,     0.5, kNextWindowVertCenter2P );
+
         CenterRectOnScreen( &opponentWindowRect,  0.5, 1.0 );
 	}
 
@@ -306,33 +257,7 @@ void PrepareStageGraphics(const Character& character)
     
     SurfaceBlendUnder(grayMonitorSurface[0], &grayMonitorZRect, backdropSurface, &grayMonitorRect[0]);
     SurfaceBlendUnder(grayMonitorSurface[1], &grayMonitorZRect, backdropSurface, &grayMonitorRect[1]);
-        
-    // Load the stage map.
-    if (stageMapSurface != nullptr)
-    {
-        Gfx_FreeSurface(stageMapSurface);
-    }
 
-    // Alpha blend the stage map with the backdrop image so we can draw it as a straight blit.
-    stageMapSurface = LoadPICTAsRGBSurface(backgroundID, "/StageMap");
-    if (stageMapSurface != nullptr)
-    {
-        int    numStageFrames = stageMapSurface->w / stageWindowZRect.right;
-        MRect  stageWindowOffsetRect = stageWindowZRect;
-        for (int index=0; index<numStageFrames; ++index)
-        {
-            CC_Rect stageWindowOffsetCCRect;
-            CC_Rect stageWindowCCRect;
-            
-            SurfaceBlendUnder(stageMapSurface, &stageWindowOffsetRect, backdropSurface, &stageWindowRect);
-            Gfx_BlitFrontSurface(stageMapSurface,
-                                 Gfx_MRectToCCRect(&stageWindowOffsetRect, &stageWindowOffsetCCRect),
-                                 Gfx_MRectToCCRect(&stageWindowRect,       &stageWindowCCRect));
-
-            OffsetMRect(&stageWindowOffsetRect, stageWindowZRect.right, 0);
-        }
-    }
-    
     for( player=0; player<=1; player++ )
 	{
 		Gfx_AcquireSurface( playerSurface[player] );
@@ -575,8 +500,7 @@ void RefreshAll()
     RefreshPlayerWindow( 1 );
     
     DrawOpponent( );
-    DrawStage( );
-    
+
     ShowScore( 0 );
     ShowScore( 1 );
 }

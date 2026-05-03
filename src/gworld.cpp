@@ -26,7 +26,6 @@ CC_MaskSurface*  maskSurface;
 CC_MaskSurface*  charMaskSurface;
 CC_RGBSurface*   boardSurface[2];
 CC_RGBSurface*   blastSurface;
-CC_RGBSurface*   blastMaskSurface;
 
 // Strip textures for GPU charring: kBombTop-1 (opaque source) and kBombBottom-1 (white+blue-as-alpha).
 static SDL_Texture* s_charSrcTex   = nullptr;
@@ -181,7 +180,6 @@ void GetBlobGraphics()
     CC_RGBPixel* blastPixels    = LoadPICTRGBPixels(picBlast,     "", "", &blastW,    &blastH);
     CC_RGBPixel* blastMskPixels = LoadPICTRGBPixels(picBlastMask, "", "", &blastMskW, &blastMskH);
     blastSurface     = Gfx_InitRGBSurface(blastW,    blastH);
-    blastMaskSurface = Gfx_InitRGBSurface(blastMskW, blastMskH);
 
     if (blastPixels && blastMskPixels)
     {
