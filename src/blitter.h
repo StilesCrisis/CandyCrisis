@@ -66,7 +66,6 @@ void InitBlitter( void );
 
 extern MBoolean update[2][kGridAcross][kGridDown];
 extern MBoolean refresh[2];
-extern MPoint topLeft[2];
 
 // Shared UI helpers (used by World Select, Pause, etc.)
 SDL_Texture* CreateCapsuleTexture(int w, int h);

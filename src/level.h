@@ -33,9 +33,6 @@ void InitDifficulty( void );
 void ChooseDifficulty( int player );
 void SelectRandomLevel( void );
 void IncrementLevel( void );
-void InitStage( void );
-void UpdateStage();
-void DrawStage();
 void RefreshAll();
 void RefreshPlayerWindow( short player );
 

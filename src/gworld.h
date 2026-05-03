@@ -37,8 +37,6 @@ void GetBlobGraphics();
 void InitPlayerWorlds();
 void MaskRect( MRect *r );
 
-// Forward-declare SDL_Texture so the surface structs below can hold GPU texture pointers
-// without requiring a full SDL header include here.
 struct SDL_Texture;
 
 struct CC_Rect
@@ -111,6 +109,5 @@ extern CC_MaskSurface*  maskSurface;
 extern CC_MaskSurface*  charMaskSurface;
 extern CC_RGBSurface*   boardSurface[2];
 extern CC_RGBSurface*   blastSurface;
-extern CC_RGBSurface*   blastMaskSurface;
 extern CC_RGBSurface*   playerSurface[2];
 extern CC_RGBSurface*   playerSpriteSurface[2];
