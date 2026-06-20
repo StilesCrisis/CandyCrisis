@@ -245,6 +245,25 @@
 
       window.onerror = (event) => { console.error('Exception: ' + event); };
     </script>
+    <script>
+      // Only register the service worker when running as an installed PWA, so
+      // regular browser visitors are not forced to download all game data upfront.
+      //
+      // Three separate checks are needed because platforms expose PWA detection
+      // differently:
+      //   - iOS Safari sets window.navigator.standalone = true when the page is
+      //     launched from a home screen icon. It does not support the
+      //     (display-mode) media query at all.
+      //   - Android Chrome (and desktop PWAs) do not set navigator.standalone,
+      //     but do match (display-mode: standalone) or (display-mode: fullscreen)
+      //     depending on the manifest's "display" field.
+      if ('serviceWorker' in navigator &&
+          (window.navigator.standalone ||
+           window.matchMedia('(display-mode: standalone)').matches ||
+           window.matchMedia('(display-mode: fullscreen)').matches)) {
+        navigator.serviceWorker.register('./service-worker.js');
+      }
+    </script>
     <!-- Shared resource package (UI, backdrops, victory screens, audio).
          Per-level packages (pkg_level_N.js) are loaded on demand by the game. -->
     <script src="pkg_shared.js"></script>
