@@ -4,7 +4,9 @@
       "Bash(cp -r \"C:/Dev/Candy Crisis HD/deps/SDL2\" \"C:/Users/John Stiles/CandyCrisis/deps/\")",
       "Bash(cp -r \"C:/Dev/Candy Crisis HD/deps/SDL2_image\" \"C:/Users/John Stiles/CandyCrisis/deps/\")",
       "Bash(cp -r \"C:/Dev/Candy Crisis HD/deps/FMOD\" \"C:/Users/John Stiles/CandyCrisis/deps/\")",
-      "Bash(cmake --build . --config Release)"
+      "Bash(cmake --build . --config Release)",
+      "Bash(cmake ..)",
+      "Bash(ninja)"
     ]
   }
 }

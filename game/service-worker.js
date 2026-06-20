@@ -1,0 +1,88 @@
+'use strict';
+
+// Cache name is stamped with the build ID at compile time. When this value
+// changes, browsers install a fresh service worker and re-cache all assets.
+const CACHE_NAME = 'candy-crisis-20260620153208';
+
+// Every file the game needs — cached on first install for offline / airplane play.
+// Served from cache on all subsequent loads; network is never contacted again.
+const PRECACHE = [
+  './index.html',
+  './CandyCrisis.html',
+  './CandyCrisis.js',
+  './CandyCrisis.wasm',
+  './audio.js',
+  './manifest.json',
+  './favicon.png',
+  './apple-touch-icon.png',
+  './icon-1024.png',
+  './pkg_shared.data',   './pkg_shared.js',
+  './pkg_level_0.data',  './pkg_level_0.js',
+  './pkg_level_1.data',  './pkg_level_1.js',
+  './pkg_level_2.data',  './pkg_level_2.js',
+  './pkg_level_3.data',  './pkg_level_3.js',
+  './pkg_level_4.data',  './pkg_level_4.js',
+  './pkg_level_5.data',  './pkg_level_5.js',
+  './pkg_level_6.data',  './pkg_level_6.js',
+  './pkg_level_7.data',  './pkg_level_7.js',
+  './pkg_level_8.data',  './pkg_level_8.js',
+  './pkg_level_9.data',  './pkg_level_9.js',
+  './pkg_level_10.data', './pkg_level_10.js',
+  './pkg_level_11.data', './pkg_level_11.js',
+  './pkg_level_13.data', './pkg_level_13.js',
+  './pkg_world1.data',   './pkg_world1.js',
+  './pkg_world2.data',   './pkg_world2.js',
+  './pkg_world3.data',   './pkg_world3.js',
+];
+
+// Service worker updates follow a two-phase lifecycle:
+//
+//   Install  → downloads and caches all assets into the new CACHE_NAME bucket.
+//              If any fetch fails the whole install is aborted and the old
+//              service worker (and its cache) is left untouched.
+//
+//   Activate → runs only after install succeeds. Deletes old CACHE_NAME buckets
+//              so stale assets from previous builds don't sit on disk forever.
+//
+// In other words: install adds the new stuff, activate removes the old stuff.
+
+// Install: fetch and cache every asset before the service worker is considered active.
+// skipWaiting() lets this service worker take control immediately rather than waiting for
+// all existing tabs to close, so offline support kicks in on the next reload.
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(PRECACHE))
+      .then(() => self.skipWaiting())
+  );
+});
+
+// Activate: runs after install succeeds. Deletes any cache buckets left over
+// from previous builds, then claims all open tabs immediately.
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+// Fetch: cache-first. Always serve the cached copy when available; only hit
+// the network for resources not yet in the cache (e.g. during the very first
+// install before the install event has finished populating the cache).
+//
+// Query strings are stripped before the cache lookup. Package scripts are
+// loaded with a ?v=BUILD_ID suffix for HTTP-cache busting, but the service
+// worker caches and serves them by path only, so they still hit the cache.
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  url.search = '';
+  const cacheKey = new Request(url.toString(), { credentials: event.request.credentials });
+  event.respondWith(
+    caches.match(cacheKey)
+      .then(cached => cached || fetch(event.request))
+  );
+});

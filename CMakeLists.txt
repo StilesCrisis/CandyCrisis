@@ -53,8 +53,27 @@ set(LIBOPENMPT_INCLUDE "${DEPS_DIR}/libopenmpt/include")
 # Input_Emscripten.cpp is already picked up by the glob; just drop Input_SDL.cpp.
 list(REMOVE_ITEM SOURCES "${SRC_DIR}/Input_SDL.cpp")
 
-# Build ID for cache-busting dynamically-loaded package scripts.
+# Build ID for cache-busting dynamically-loaded package scripts and the service worker cache.
 string(TIMESTAMP BUILD_ID "%Y%m%d%H%M%S")
+
+# Generate service-worker.js at build time (not configure time) so that every
+# ninja invocation stamps a fresh BUILD_ID into the cache name, ensuring
+# browsers detect the update on each new deployment.
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generate_service_worker.cmake" [[
+string(TIMESTAMP BUILD_ID "%Y%m%d%H%M%S")
+configure_file("${INPUT}" "${OUTPUT}" @ONLY)
+]])
+add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/service-worker.js"
+    COMMAND ${CMAKE_COMMAND}
+        "-DINPUT=${CMAKE_SOURCE_DIR}/web/service-worker.js.in"
+        "-DOUTPUT=${CMAKE_CURRENT_BINARY_DIR}/service-worker.js"
+        -P "${CMAKE_CURRENT_BINARY_DIR}/generate_service_worker.cmake"
+    DEPENDS "${CMAKE_SOURCE_DIR}/web/service-worker.js.in"
+    VERBATIM
+    COMMENT "Generating service-worker.js"
+)
+add_custom_target(ServiceWorker DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/service-worker.js")
 
 add_executable(CandyCrisis ${SOURCES})
 set_target_properties(CandyCrisis PROPERTIES SUFFIX ".html")
@@ -316,6 +335,7 @@ add_custom_target(WebDist ALL
         "${CMAKE_CURRENT_BINARY_DIR}/favicon.png"
         "${CMAKE_CURRENT_BINARY_DIR}/apple-touch-icon.png"
         "${CMAKE_CURRENT_BINARY_DIR}/icon-1024.png"
+        "${CMAKE_CURRENT_BINARY_DIR}/service-worker.js"
         ${PKG_OUTPUTS}
         "${DIST_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -325,7 +345,7 @@ add_custom_target(WebDist ALL
     COMMENT "Collecting deployable files into game/"
     VERBATIM
 )
-add_dependencies(WebDist WebPackages CandyCrisis)
+add_dependencies(WebDist WebPackages CandyCrisis ServiceWorker)
 
 elseif(APPLE)
 
