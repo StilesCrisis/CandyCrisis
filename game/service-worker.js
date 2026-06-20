@@ -2,7 +2,7 @@
 
 // Cache name is stamped with the build ID at compile time. When this value
 // changes, browsers install a fresh service worker and re-cache all assets.
-const CACHE_NAME = 'candy-crisis-20260620153722';
+const CACHE_NAME = 'candy-crisis-20260620154051';
 
 // Every file the game needs — cached on first install for offline / airplane play.
 // Served from cache on all subsequent loads; network is never contacted again.
@@ -30,9 +30,10 @@ const PRECACHE = [
   './pkg_level_10.data', './pkg_level_10.js',
   './pkg_level_11.data', './pkg_level_11.js',
   './pkg_level_13.data', './pkg_level_13.js',
-  './pkg_world1.data',   './pkg_world1.js',
-  './pkg_world2.data',   './pkg_world2.js',
-  './pkg_world3.data',   './pkg_world3.js',
+  './pkg_world1.data',        './pkg_world1.js',
+  './pkg_world2_shared.data', './pkg_world2_shared.js',
+  './pkg_world2.data',        './pkg_world2.js',
+  './pkg_world3.data',        './pkg_world3.js',
 ];
 
 // Service worker updates follow a two-phase lifecycle:
