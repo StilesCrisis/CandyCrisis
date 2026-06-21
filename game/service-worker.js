@@ -2,11 +2,12 @@
 
 // Cache name is stamped with the build ID at compile time. When this value
 // changes, browsers install a fresh service worker and re-cache all assets.
-const CACHE_NAME = 'candy-crisis-20260620220601';
+const CACHE_NAME = 'candy-crisis-20260620222010';
 
 // Every file the game needs — cached on first install for offline / airplane play.
 // Served from cache on all subsequent loads; network is never contacted again.
 const PRECACHE = [
+  './',
   './index.html',
   './CandyCrisis.html',
   './CandyCrisis.js',
