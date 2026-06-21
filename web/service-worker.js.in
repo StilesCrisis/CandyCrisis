@@ -7,6 +7,7 @@ const CACHE_NAME = 'candy-crisis-@BUILD_ID@';
 // Every file the game needs — cached on first install for offline / airplane play.
 // Served from cache on all subsequent loads; network is never contacted again.
 const PRECACHE = [
+  './',
   './index.html',
   './CandyCrisis.html',
   './CandyCrisis.js',
