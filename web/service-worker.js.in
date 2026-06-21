@@ -81,7 +81,7 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   url.search = '';
-  const cacheKey = new Request(url.toString(), { credentials: event.request.credentials });
+  const cacheKey = url.toString();
   event.respondWith(
     caches.match(cacheKey)
       .then(cached => cached || fetch(event.request))
