@@ -5,7 +5,7 @@
   "orientation": "landscape",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "start_url": ".",
+  "start_url": "./CandyCrisis.html",
   "icons": [
     { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
     { "src": "icon-1024.png",        "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
