@@ -2,7 +2,7 @@
 
 // Cache name is stamped with the build ID at compile time. When this value
 // changes, browsers install a fresh service worker and re-cache all assets.
-const CACHE_NAME = 'candy-crisis-20260620222010';
+const CACHE_NAME = 'candy-crisis-20260620224417';
 
 // Every file the game needs — cached on first install for offline / airplane play.
 // Served from cache on all subsequent loads; network is never contacted again.
@@ -54,7 +54,15 @@ const PRECACHE = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE))
+      .then(cache => Promise.all(PRECACHE.map(url =>
+        fetch(url).then(r =>
+          r.arrayBuffer().then(buf =>
+            cache.put(url, new Response(buf, {
+              headers: { 'Content-Type': r.headers.get('Content-Type') || '' }
+            }))
+          )
+        )
+      )))
       .then(() => self.skipWaiting())
   );
 });
